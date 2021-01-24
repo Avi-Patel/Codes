@@ -1,1 +1,1 @@
-# Practice-code-Internship
+# Practice-codes-Internship
