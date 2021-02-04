@@ -1,13 +1,13 @@
 // 'use strict';
 
 
-var x;
-let y; {
-    var x = 5;
-    let y = 10;
-    console.log(x, y);
-}
-console.log(x, y);
+// var x;
+// let y; {
+//     var x = 5;
+//     let y = 10;
+//     console.log(x, y);
+// }
+// console.log(x, y);
 
 
 // console.log(-(2 ** 3));

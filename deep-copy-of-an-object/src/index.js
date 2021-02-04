@@ -13,6 +13,9 @@ function objToArray(input) {
 function deepCopy(input) {
   // console.log(input, typeof input);
 
+  if (input === undefined) return undefined;
+  if (input == null) return null;
+
   //if input is not of type Object
   if (typeof input !== "object") return input;
 
@@ -50,7 +53,6 @@ function deepCopy(input) {
       if (input[i] instanceof Array) {
         temp = objToArray(temp);
       }
-
       result[i] = temp;
     } else {
       result[i] = input[i];
@@ -72,27 +74,38 @@ let a = {
     w: {
       ab: 3
     }
+  },
+  z: function abc() {
+    console.log("abc");
   }
 };
-a.z = new Set();
-a.z.add(1);
-a.z.add({ x: 1, y: 2 });
+// a.z = new Set();
+// a.z.add(1);
+// a.z.add({ x: 1, y: 2 });
 
-a["ab"] = new Map();
-a["ab"].set("a", 1);
-a["ab"].set("b", { x: 1, y: 2 });
+// a["ab"] = new Map();
+// a["ab"].set("a", 1);
+// a["ab"].set("b", { x: 1, y: 2 });
+
+// let r = deepCopy(a);
+// console.log(a);
+// console.log(r);
+// console.log(a.y === r.y);
+// console.log(a.y.w === r.y.w);
+// console.log(a.y.w.ab === r.y.w.ab);
+// console.log(r.x === a.x);
+// console.log(a.z === r.z);
+// console.log(a.x[1] === r.x[1]);
+// console.log(a.x[3] === r.x[3]);
+// console.log(a["ab"].get("b") === r["ab"].get("b"));
+
+// let r1 = deepCopy(a.z);
+// console.log(r1 === a.z);
+
+// let ab = null;
 
 let r = deepCopy(a);
-console.log(a);
 console.log(r);
-console.log(a.y === r.y);
-console.log(a.y.w === r.y.w);
-console.log(a.y.w.ab === r.y.w.ab);
-console.log(r.x === a.x);
 console.log(a.z === r.z);
-console.log(a.x[1] === r.x[1]);
-console.log(a.x[3] === r.x[3]);
-console.log(a["ab"].get("b") === r["ab"].get("b"));
-
-let r1 = deepCopy(a.z);
-console.log(r1 === a.z);
+// console.log(ab.x === r.x);
+// console.log(ab.x[0] === r.x[0]);
