@@ -25,3 +25,11 @@
 //   }
 // });
 // updateAnalytics();
+
+let a = { x: 1, y: 1 };
+function abc() {
+  let b = { x: 2, y: 2 };
+  a = b;
+}
+abc();
+console.log(a);

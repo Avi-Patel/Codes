@@ -2,6 +2,7 @@ import { checkAndRenderOneToDo } from "/src/renderFunction.js";
 import { data } from "/src/localDataAndElements.js";
 import { createToDoInDatabase } from "/src/server.js";
 import { showSnackbar } from "/src/otherFunctions.js";
+
 export const createElement = (
   tagName,
   properties,
@@ -31,7 +32,7 @@ export const createToDoNode = (toDoItem) => {
     class: `TDitem mar8 pad8 b12 ${
       toDoItem.completed ? "reduceOpacity" : "originalOpacity"
     }`,
-    id: `ID${toDoItem.ID}`
+    "data-id": `ID${toDoItem.ID}`
   });
 
   toDoNode.innerHTML = `<div class="topTwoBtns">
@@ -86,6 +87,7 @@ export const createAndAddTodo = () => {
       checkAndRenderOneToDo(toDoItem);
     })
     .catch((e) => {
+      data.counter--;
       TDTitleInput.value = title;
       showSnackbar(e);
     });

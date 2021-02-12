@@ -1,8 +1,13 @@
 import { data } from "/src/localDataAndElements.js";
 import { updateCountsForRemovedToDo, updateAnalytics } from "/src/analytics.js";
 import { createModal } from "/src/createFunctions.js";
-import { checkAndRenderOneToDo } from "/src/renderFunction.js";
-import { deleteToDoFromDatabase, updateToDoInDatabase } from "/src/server.js";
+import { checkAndRenderOneToDo, displayToDos } from "/src/renderFunction.js";
+import {
+  deleteToDoFromDatabase,
+  updateToDoInDatabase,
+  bulkUpdateInDatabase,
+  bulkDeleteFromDatabase
+} from "/src/server.js";
 import { showSnackbar } from "/src/otherFunctions.js";
 
 const getIndexInLocalDatabase = (id) => {
@@ -17,13 +22,11 @@ export const deleteToDo = (id) => {
   deleteToDoFromDatabase(id)
     .then((returnedIndex) => {
       updateCountsForRemovedToDo(data.allTodos[returnedIndex]);
-      document.querySelector(`#ID${id}`).remove();
+      document.querySelector(`[data-id="ID${id}"]`).remove();
       data.allTodos.splice(returnedIndex, 1);
       updateAnalytics();
     })
-    .catch((e) => {
-      showSnackbar(e);
-    });
+    .catch((e) => showSnackbar(e));
 };
 
 export const addOrRemoveFromSeleted = (index) => {
@@ -49,9 +52,7 @@ export const alterCompletionOfToDo = (id) => {
       data.allTodos[index] = returnedToDo;
       checkAndRenderOneToDo(returnedToDo);
     })
-    .catch((e) => {
-      showSnackbar(e);
-    });
+    .catch((e) => showSnackbar(e));
 };
 
 const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
@@ -70,9 +71,12 @@ const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
       ).selectedIndex;
 
       updateToDoInDatabase(updatedToDo.ID, updatedToDo).then((returnedToDo) => {
-        toDo = returnedToDo;
+        toDo.title = returnedToDo.title;
+        toDo.urgency = returnedToDo.urgency;
+        toDo.category = returnedToDo.category;
+        // toDo = returnedToDo;
         updateCountsForRemovedToDo(returnedToDo);
-        checkAndRenderOneToDo(returnedToDo);
+        checkAndRenderOneToDo(toDo);
         updateModal.remove();
       });
     }
@@ -81,9 +85,7 @@ const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
 
 const addListenerToModalCancelBtn = (btnID, updateModal) => {
   const cancelBtn = document.querySelector(`#${btnID}`);
-  cancelBtn.addEventListener("click", () => {
-    updateModal.remove();
-  });
+  cancelBtn.addEventListener("click", () => updateModal.remove());
 };
 
 export const editToDo = (id) => {
@@ -98,24 +100,46 @@ export const editToDo = (id) => {
   addListenerToModalCancelBtn("cancelUpdateBtn", updateModal);
 };
 
-export const removeAllFromSeleted = () => {
+export const clearSelection = () => {
   data.curOnScreenSelected.forEach((index) => {
     const selectCircle = document.querySelector(`#selectToDo${index}`);
     selectCircle.style.backgroundColor = "";
   });
+  data.curOnScreenSelected.length = 0;
 };
 
 export const updateAllToCompleted = () => {
-  data.curOnScreenSelected.forEach((id) => {
+  const toDosforUpdation = [];
+  const idsForUpdation = [];
+
+  data.curOnScreenSelected.forEach((id, i) => {
     const index = getIndexInLocalDatabase(id);
-    const updatedToDo = { ...data.allTodos[index] };
-    updatedToDo.completed = true;
-    updateToDoInDatabase(id, updatedToDo)
-      .then((returnedToDo) => {
-        data.allTodos[index] = returnedToDo;
-      })
-      .catch((e) => {
-        showSnackbar(e);
-      });
+    toDosforUpdation.push({ ...data.allTodos[index] });
+    idsForUpdation.push(index);
+    toDosforUpdation[i].completed = true;
   });
+
+  bulkUpdateInDatabase(idsForUpdation, toDosforUpdation)
+    .then(() => {
+      idsForUpdation.forEach((index) => {
+        data.allTodos[index].completed = true;
+      });
+      data.curOnScreenSelected.length = 0;
+      displayToDos();
+    })
+    .catch((e) => showSnackbar(e));
+};
+
+export const deleteAllSelectedToDos = () => {
+  const idsToBeDeleted = [...data.curOnScreenSelected];
+  bulkDeleteFromDatabase(idsToBeDeleted)
+    .then(() => {
+      idsToBeDeleted.forEach((id) => {
+        const index = getIndexInLocalDatabase(id);
+        data.allTodos.splice(index, 1);
+      });
+      data.curOnScreenSelected.length = 0;
+      displayToDos();
+    })
+    .catch((e) => showSnackbar(e));
 };

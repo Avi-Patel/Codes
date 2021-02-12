@@ -3,9 +3,9 @@ import { data, queriedElements } from "/src/localDataAndElements.js";
 import { createAndAddTodo } from "/src/createFunctions.js";
 import { displayToDos } from "/src/renderFunction.js";
 import {
-  deleteToDo,
   updateAllToCompleted,
-  removeAllFromSeleted
+  deleteAllSelectedToDos,
+  clearSelection
 } from "/src/operationsOnToDo";
 
 updateHeaderDate();
@@ -53,38 +53,29 @@ queriedElements.urgencyFilter.addEventListener("click", (event) =>
 queriedElements.categoryFilter.addEventListener("click", (event) =>
   updateFilter(event, data.categoryFilter, data.categoryFilterIds)
 );
-queriedElements.completeSelection.addEventListener("click", () => {
-  updateAllToCompleted();
-  displayToDos();
-  data.curOnScreenSelected.length = 0;
-});
+queriedElements.completeSelection.addEventListener("click", () =>
+  updateAllToCompleted()
+);
 
-queriedElements.clearSelection.addEventListener("click", () => {
-  removeAllFromSeleted();
-  displayToDos();
-  data.curOnScreenSelected.length = 0;
-});
-queriedElements.deleteSelection.addEventListener("click", () => {
-  data.curOnScreenSelected.forEach((ID) => {
-    deleteToDo(ID);
-  });
-  data.curOnScreenSelected.length = 0;
-});
+queriedElements.clearSelection.addEventListener("click", () =>
+  clearSelection()
+);
+queriedElements.deleteSelection.addEventListener("click", () =>
+  deleteAllSelectedToDos()
+);
 
 queriedElements.searchInput.addEventListener("input", (event) => {
   clearTimeout(timeOutID);
-  const timeOutID = setTimeout(() => {
-    displayToDos();
-  }, 500);
+  const timeOutID = setTimeout(() => displayToDos(), 500);
 });
-queriedElements.searchBtn.addEventListener("click", () => {
+queriedElements.clearBtn.addEventListener("click", () => {
   queriedElements.searchInput.value = "";
   displayToDos();
 });
 
-queriedElements.notCompletedCheckBox.addEventListener("change", () => {
-  displayToDos();
-});
+queriedElements.notCompletedCheckBox.addEventListener("change", () =>
+  displayToDos()
+);
 
 window.addEventListener("click", (event) => {
   if (event.target.id === "updateModal") {

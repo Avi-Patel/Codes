@@ -23,6 +23,6 @@ export const queriedElements = {
   percentageText: document.querySelector("#percentageText"),
   ratioText: document.querySelector("#ratioText"),
   searchInput: document.querySelector("#searchInput"),
-  searchBtn: document.querySelector("#searchBtn"),
+  clearBtn: document.querySelector("#clearBtn"),
   notCompletedCheckBox: document.querySelector("#notCompletedCheckBox")
 };

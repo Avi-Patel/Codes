@@ -10,7 +10,7 @@ import { updateAnalytics } from "/src/analytics.js";
 import { createToDoNode } from "/src/createFunctions.js";
 
 const addListenerForToDo = (id) => {
-  const toDoitem = document.querySelector(`#ID${id}`);
+  const toDoitem = document.querySelector(`[data-id="ID${id}"]`);
   toDoitem.addEventListener("click", (event) => {
     switch (event.target.id) {
       case "markCompleted" + id:
@@ -34,10 +34,11 @@ const addListenerForToDo = (id) => {
 };
 
 export const checkAndRenderOneToDo = (toDoItem) => {
-  const oldToDo = document.querySelector(`#ID${toDoItem.ID}`);
+  const oldToDo = document.querySelector(`[data-id="ID${toDoItem.ID}"]`);
   const conditionSatisfied =
     checkWithFilter(toDoItem) &&
     containSearchedWord(queriedElements.searchInput.value, toDoItem.title);
+
   if (conditionSatisfied) {
     console.log("Satisfied");
     data.totalCount++;
@@ -57,6 +58,7 @@ export const checkAndRenderOneToDo = (toDoItem) => {
 export const displayToDos = () => {
   let countCompleted = 0,
     totalCount = 0;
+
   queriedElements.todosBox
     .querySelectorAll("*")
     .forEach((node) => node.remove());
