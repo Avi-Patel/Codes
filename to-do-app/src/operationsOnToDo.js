@@ -3,15 +3,26 @@ import { updateCountsForRemovedToDo, updateAnalytics } from "/src/analytics.js";
 import { createModal } from "/src/createFunctions.js";
 import { checkAndRenderOneToDo } from "/src/renderFunction.js";
 
-export const deleteToDo = (index) => {
-  let indexInToDos = null;
-  data.allTodos.forEach((todo, i) => {
-    if (todo.ID === index) {
-      indexInToDos = i;
-    }
+const getIndexInDatabase = (id) => {
+  let index = null;
+  data.allTodos.forEach((toDo, i) => {
+    if (toDo.ID === id) index = i;
   });
+  return index;
+};
+
+const getToDofromDatabase = (id) => {
+  let toDO = null;
+  data.allTodos.forEach((toDoX, i) => {
+    if (toDoX.ID === id) toDO = toDoX;
+  });
+  return toDO;
+};
+
+export const deleteToDo = (id) => {
+  let indexInToDos = getIndexInDatabase(id);
   updateCountsForRemovedToDo(data.allTodos[indexInToDos]);
-  document.querySelector(`#ID${index}`).remove();
+  document.querySelector(`#ID${id}`).remove();
   data.allTodos.splice(indexInToDos, 1);
   updateAnalytics();
 };
@@ -29,33 +40,15 @@ export const addOrRemoveFromSeleted = (index) => {
   }
 };
 
-export const alterCompletionOfToDO = (index) => {
-  let toDo = null;
-  data.allTodos.forEach((toDoX) => {
-    if (toDoX.ID === index) {
-      toDo = toDoX;
-    }
-  });
+export const alterCompletionOfToDO = (id) => {
+  let toDo = getToDofromDatabase(id);
   updateCountsForRemovedToDo(toDo);
   toDo.completed = toDo.completed ? false : true;
   checkAndRenderOneToDo(toDo);
 };
 
-export const editToDo = (id) => {
-  let indexInToDos = null;
-  data.allTodos.forEach((todo, i) => {
-    if (todo.ID === id) {
-      indexInToDos = i;
-    }
-  });
-  const toDo = data.allTodos[indexInToDos];
-  const updateModal = createModal(toDo.title, toDo.urgency, toDo.category);
-  updateModal.querySelector("#updatedUrgency").selectedIndex = toDo.urgency;
-  updateModal.querySelector("#updatedCategory").selectedIndex = toDo.category;
-  document.body.appendChild(updateModal);
-  const updateBtn = document.querySelector("#updateToDoBtn");
-  const cancelBtn = document.querySelector("#cancelUpdateBtn");
-
+const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
+  const updateBtn = document.querySelector(`#${btnID}`);
   updateBtn.addEventListener("click", () => {
     const updatedTitle = document.querySelector("#updateToDoTitle").value;
     if (updatedTitle.trim() !== "") {
@@ -71,9 +64,25 @@ export const editToDo = (id) => {
     checkAndRenderOneToDo(toDo);
     updateModal.remove();
   });
+};
+
+const addListenerToModalCancelBtn = (btnID, updateModal) => {
+  const cancelBtn = document.querySelector(`#${btnID}`);
   cancelBtn.addEventListener("click", () => {
     updateModal.remove();
   });
+};
+
+export const editToDo = (id) => {
+  let indexInToDos = getIndexInDatabase(id);
+  const toDo = data.allTodos[indexInToDos];
+  const updateModal = createModal(toDo.title, toDo.urgency, toDo.category);
+  updateModal.querySelector("#updatedUrgency").selectedIndex = toDo.urgency;
+  updateModal.querySelector("#updatedCategory").selectedIndex = toDo.category;
+  document.body.appendChild(updateModal);
+
+  addListenerToModalUpdateBtn("updateToDoBtn", toDo, updateModal);
+  addListenerToModalCancelBtn("cancelUpdateBtn", updateModal);
 };
 
 export const removeAllFromSeleted = () => {

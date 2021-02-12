@@ -9,7 +9,7 @@ import {
 import { updateAnalytics } from "/src/analytics.js";
 import { createToDoNode } from "/src/createFunctions.js";
 
-const addListener = (id) => {
+const addListenerForToDo = (id) => {
   const toDoitem = document.querySelector(`#ID${id}`);
   toDoitem.addEventListener("click", (event) => {
     const targetID = event.target.id;
@@ -40,7 +40,7 @@ export const checkAndRenderOneToDo = (toDoItem) => {
     } else {
       queriedElements.todosBox.appendChild(createToDoNode(toDoItem));
     }
-    addListener(toDoItem.ID);
+    addListenerForToDo(toDoItem.ID);
   } else if (oldToDo !== null || oldToDo !== undefined) {
     oldToDo.remove();
   }
@@ -64,7 +64,7 @@ export const displayToDos = () => {
         countCompleted++;
       }
       queriedElements.todosBox.appendChild(createToDoNode(toDoItem));
-      addListener(toDoItem.ID);
+      addListenerForToDo(toDoItem.ID);
     }
   });
   data.curOnScreenSelected.length = 0;
