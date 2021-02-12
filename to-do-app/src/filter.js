@@ -1,6 +1,7 @@
-import { data, queriedElements } from "/src/dataAndElements.js";
+import { data, queriedElements } from "/src/localDataAndElements.js";
 
 export const checkWithFilter = (toDoItem) => {
+  //collecting all consitions's true/false value
   const notAnyUrgencyApplied = data.urgencyFilter.every(
     (element) => element === 0
   );
@@ -8,6 +9,7 @@ export const checkWithFilter = (toDoItem) => {
     (element) => element === 0
   );
   const checked = queriedElements.notCompletedCheckBox.checked;
+
   if (
     (data.urgencyFilter[toDoItem.urgency] === 1 || notAnyUrgencyApplied) &&
     (data.categoryFilter[toDoItem.category] === 1 || notAnyCategoryApplied) &&

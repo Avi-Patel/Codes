@@ -1,4 +1,4 @@
-import { data, queriedElements } from "/src/dataAndElements.js";
+import { queriedElements, data } from "/src/localDataAndElements.js";
 
 export const updateCountsForRemovedToDo = (toDo) => {
   if (toDo.completed) {

@@ -1,9 +1,11 @@
-import { data } from "/src/dataAndElements.js";
+import { data } from "/src/localDataAndElements.js";
 import { updateCountsForRemovedToDo, updateAnalytics } from "/src/analytics.js";
 import { createModal } from "/src/createFunctions.js";
 import { checkAndRenderOneToDo } from "/src/renderFunction.js";
+import { deleteToDoFromDatabase, updateToDoInDatabase } from "/src/server.js";
+import { showSnackbar } from "/src/otherFunctions.js";
 
-const getIndexInDatabase = (id) => {
+const getIndexInLocalDatabase = (id) => {
   let index = null;
   data.allTodos.forEach((toDo, i) => {
     if (toDo.ID === id) index = i;
@@ -11,20 +13,17 @@ const getIndexInDatabase = (id) => {
   return index;
 };
 
-const getToDofromDatabase = (id) => {
-  let toDO = null;
-  data.allTodos.forEach((toDoX, i) => {
-    if (toDoX.ID === id) toDO = toDoX;
-  });
-  return toDO;
-};
-
 export const deleteToDo = (id) => {
-  let indexInToDos = getIndexInDatabase(id);
-  updateCountsForRemovedToDo(data.allTodos[indexInToDos]);
-  document.querySelector(`#ID${id}`).remove();
-  data.allTodos.splice(indexInToDos, 1);
-  updateAnalytics();
+  deleteToDoFromDatabase(id)
+    .then((returnedIndex) => {
+      updateCountsForRemovedToDo(data.allTodos[returnedIndex]);
+      document.querySelector(`#ID${id}`).remove();
+      data.allTodos.splice(returnedIndex, 1);
+      updateAnalytics();
+    })
+    .catch((e) => {
+      showSnackbar(e);
+    });
 };
 
 export const addOrRemoveFromSeleted = (index) => {
@@ -40,29 +39,43 @@ export const addOrRemoveFromSeleted = (index) => {
   }
 };
 
-export const alterCompletionOfToDO = (id) => {
-  let toDo = getToDofromDatabase(id);
-  updateCountsForRemovedToDo(toDo);
-  toDo.completed = toDo.completed ? false : true;
-  checkAndRenderOneToDo(toDo);
+export const alterCompletionOfToDo = (id) => {
+  const index = getIndexInLocalDatabase(id);
+  const updatedToDo = { ...data.allTodos[index] };
+  updatedToDo.completed = updatedToDo.completed ? false : true;
+  updateToDoInDatabase(id, updatedToDo)
+    .then((returnedToDo) => {
+      updateCountsForRemovedToDo(data.allTodos[index]);
+      data.allTodos[index] = returnedToDo;
+      checkAndRenderOneToDo(returnedToDo);
+    })
+    .catch((e) => {
+      showSnackbar(e);
+    });
 };
 
 const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
   const updateBtn = document.querySelector(`#${btnID}`);
   updateBtn.addEventListener("click", () => {
     const updatedTitle = document.querySelector("#updateToDoTitle").value;
+
     if (updatedTitle.trim() !== "") {
-      const updatedUrgency = document.querySelector("#updatedUrgency")
-        .selectedIndex;
-      const updatedCategory = document.querySelector("#updatedCategory")
-        .selectedIndex;
-      toDo.title = updatedTitle;
-      toDo.urgency = updatedUrgency;
-      toDo.category = updatedCategory;
+      const updatedToDo = { ...toDo };
+      updatedToDo.title = updatedTitle;
+      updatedToDo.urgency = document.querySelector(
+        "#updatedUrgency"
+      ).selectedIndex;
+      updatedToDo.category = document.querySelector(
+        "#updatedCategory"
+      ).selectedIndex;
+
+      updateToDoInDatabase(updatedToDo.ID, updatedToDo).then((returnedToDo) => {
+        toDo = returnedToDo;
+        updateCountsForRemovedToDo(returnedToDo);
+        checkAndRenderOneToDo(returnedToDo);
+        updateModal.remove();
+      });
     }
-    updateCountsForRemovedToDo(toDo);
-    checkAndRenderOneToDo(toDo);
-    updateModal.remove();
   });
 };
 
@@ -74,7 +87,7 @@ const addListenerToModalCancelBtn = (btnID, updateModal) => {
 };
 
 export const editToDo = (id) => {
-  let indexInToDos = getIndexInDatabase(id);
+  let indexInToDos = getIndexInLocalDatabase(id);
   const toDo = data.allTodos[indexInToDos];
   const updateModal = createModal(toDo.title, toDo.urgency, toDo.category);
   updateModal.querySelector("#updatedUrgency").selectedIndex = toDo.urgency;
@@ -93,9 +106,16 @@ export const removeAllFromSeleted = () => {
 };
 
 export const updateAllToCompleted = () => {
-  data.allTodos.forEach((toDo) => {
-    if (data.curOnScreenSelected.indexOf(toDo.ID) !== -1) {
-      toDo.completed = true;
-    }
+  data.curOnScreenSelected.forEach((id) => {
+    const index = getIndexInLocalDatabase(id);
+    const updatedToDo = { ...data.allTodos[index] };
+    updatedToDo.completed = true;
+    updateToDoInDatabase(id, updatedToDo)
+      .then((returnedToDo) => {
+        data.allTodos[index] = returnedToDo;
+      })
+      .catch((e) => {
+        showSnackbar(e);
+      });
   });
 };

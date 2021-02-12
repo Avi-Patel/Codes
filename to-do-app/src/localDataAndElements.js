@@ -7,8 +7,8 @@ export const data = {
   categoryFilterIds: ["personalCategory", "academicCategory", "socialCategory"],
   curOnScreenSelected: [],
   completed: 0,
-  urgencyIconColor: ["cgreen", "cyellow", "cred"],
-  categoryIcon: ["fa-user-alt", "fa-book-open", "fa-users"],
+  urgencyIconColors: ["cgreen", "cyellow", "cred"],
+  categoryIcons: ["fa-user-alt", "fa-book-open", "fa-users"],
   countCompleted: 0,
   totalCount: 0
 };

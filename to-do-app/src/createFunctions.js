@@ -1,5 +1,7 @@
 import { checkAndRenderOneToDo } from "/src/renderFunction.js";
-import { data } from "/src/dataAndElements.js";
+import { data } from "/src/localDataAndElements.js";
+import { createToDoInDatabase } from "/src/server.js";
+import { showSnackbar } from "/src/otherFunctions.js";
 export const createElement = (
   tagName,
   properties,
@@ -31,6 +33,7 @@ export const createToDoNode = (toDoItem) => {
     }`,
     id: `ID${toDoItem.ID}`
   });
+
   toDoNode.innerHTML = `<div class="topTwoBtns">
     <i class="fas fa-pencil-alt cwhite iconBtn iconBtnExtra visiblyAltered" id="editToDo${ID}"></i>
     <i class="fas fa-trash-alt cwhite iconBtn iconBtnExtra visiblyAltered" id="deleteToDo${ID}"></i>
@@ -38,14 +41,14 @@ export const createToDoNode = (toDoItem) => {
   <div class="normalBoldTitle textCenter mar10" style="font-size: 18px;">
     ${toDoItem.title}
   </div>
-  <div class="normalTitle mar10" style="font-size: 12px;">
+  <div class="normalTitle mar10" style="font-size: 14px;">
     ${toDoItem.dateAsID}
   </div>
   <div class="TDprefrerences mar10">
     <i class="fas fa-exclamation-triangle mar8 ${
-      data.urgencyIconColor[toDoItem.urgency]
+      data.urgencyIconColors[toDoItem.urgency]
     } TDicon"></i>
-    <i class="fas ${data.categoryIcon[toDoItem.category]} mar8 cwhite TDicon">
+    <i class="fas ${data.categoryIcons[toDoItem.category]} mar8 cwhite TDicon">
     </i>
   </div>
   <button class="markCompleted greenBtn mar10" id="markCompleted${ID}">
@@ -55,7 +58,7 @@ export const createToDoNode = (toDoItem) => {
   return toDoNode;
 };
 
-export const createToDo = (title, urgency, category) => {
+export const createToDoObject = (title, urgency, category) => {
   const toDoItem = {
     ID: data.counter++,
     dateAsID: new Date().toLocaleString(),
@@ -70,14 +73,22 @@ export const createToDo = (title, urgency, category) => {
 export const createAndAddTodo = () => {
   const TDTitleInput = document.querySelector("#TDTitle");
   const title = TDTitleInput.value.trim();
-  TDTitleInput.value = "";
-  TDTitleInput.focus();
   const urgency = document.querySelector("#urgencySelect").selectedIndex;
   const category = document.querySelector("#categorySelect").selectedIndex;
 
-  const toDoItem = createToDo(title, urgency, category);
-  data.allTodos.push(toDoItem);
-  checkAndRenderOneToDo(toDoItem);
+  TDTitleInput.value = "";
+  TDTitleInput.focus();
+
+  const toDoItem = createToDoObject(title, urgency, category);
+  createToDoInDatabase(toDoItem)
+    .then(() => {
+      data.allTodos.push(toDoItem);
+      checkAndRenderOneToDo(toDoItem);
+    })
+    .catch((e) => {
+      TDTitleInput.value = title;
+      showSnackbar(e);
+    });
 };
 
 export const createModal = (title, urgencyIndex, categoryIndex) => {
@@ -87,6 +98,7 @@ export const createModal = (title, urgencyIndex, categoryIndex) => {
     class: "updateModal",
     id: "updateModal"
   });
+
   updateModal.innerHTML = `<div class="modalContent b12 pad12">
     <div class="cwhite normalBoldTitle marTB8">Update To-Do</div>
     <input

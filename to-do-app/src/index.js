@@ -1,5 +1,5 @@
-import "/src/updateDate.js";
-import { data, queriedElements } from "/src/dataAndElements.js";
+import { updateHeaderDate } from "/src/otherFunctions.js";
+import { data, queriedElements } from "/src/localDataAndElements.js";
 import { createAndAddTodo } from "/src/createFunctions.js";
 import { displayToDos } from "/src/renderFunction.js";
 import {
@@ -7,6 +7,8 @@ import {
   updateAllToCompleted,
   removeAllFromSeleted
 } from "/src/operationsOnToDo";
+
+updateHeaderDate();
 
 const changeBtnStyle = (target, selected) => {
   if (selected) {
@@ -20,17 +22,21 @@ const changeBtnStyle = (target, selected) => {
 
 const updateFilter = (event, dataFilter, dataFilterIds) => {
   let anyThingChanged = true;
-  if (event.target.id === dataFilterIds[0]) {
-    dataFilter[0] ^= 1;
-    changeBtnStyle(event.target, dataFilter[0]);
-  } else if (event.target.id === dataFilterIds[1]) {
-    dataFilter[1] ^= 1;
-    changeBtnStyle(event.target, dataFilter[1]);
-  } else if (event.target.id === dataFilterIds[2]) {
-    dataFilter[2] ^= 1;
-    changeBtnStyle(event.target, dataFilter[2]);
-  } else {
-    anyThingChanged = false;
+  switch (event.target.id) {
+    case dataFilterIds[0]:
+      dataFilter[0] ^= 1;
+      changeBtnStyle(event.target, dataFilter[0]);
+      break;
+    case dataFilterIds[1]:
+      dataFilter[1] ^= 1;
+      changeBtnStyle(event.target, dataFilter[1]);
+      break;
+    case dataFilterIds[2]:
+      dataFilter[2] ^= 1;
+      changeBtnStyle(event.target, dataFilter[2]);
+      break;
+    default:
+      anyThingChanged = false;
   }
   if (anyThingChanged) displayToDos();
 };
