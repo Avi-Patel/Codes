@@ -2,12 +2,10 @@ import { updateHeaderDate } from "/src/otherFunctions.js";
 import { data, queriedElements } from "/src/localDataAndElements.js";
 import { createAndAddTodo } from "/src/createFunctions.js";
 import { displayToDos } from "/src/renderFunction.js";
-import {
-  updateAllToCompleted,
-  deleteAllSelectedToDos,
-  clearSelection
-} from "/src/operationsOnToDo";
+import { updateAllToCompleted, deleteAllSelectedToDos, clearSelection } from "/src/operationsOnToDo.js";
+import {undo, redo} from "/src/history.js";
 
+console.log("strat");
 updateHeaderDate();
 
 const changeBtnStyle = (target, selected) => {
@@ -80,5 +78,17 @@ queriedElements.notCompletedCheckBox.addEventListener("change", () =>
 window.addEventListener("click", (event) => {
   if (event.target.id === "updateModal") {
     event.target.remove();
+  }
+});
+
+window.addEventListener("keypress", (event) => {
+  if (event.ctrlKey && event.key === 'z') {
+    console.log("undo event");
+    undo();
+  }
+  else if(event.ctrlKey && event.key==='r')
+  {
+    console.log("redo event");
+    redo();
   }
 });

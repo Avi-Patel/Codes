@@ -12,3 +12,11 @@ export const showSnackbar = (message) => {
     3000
   );
 };
+
+export const getIndexInLocalDatabase = (id) => {
+  let index = null;
+  data.allTodos.forEach((toDo, i) => {
+    if (toDo.ID === id) index = i;
+  });
+  return index;
+};

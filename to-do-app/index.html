@@ -4,8 +4,8 @@
     <title>Parcel Sandbox</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="src/styles.css" />
-    <link rel="icon" href="https://kit.fontawesome.com/a076d05399.js" />
-    <!-- <script src="https://kit.fontawesome.com/a076d05399.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script> -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   </head>
 
   <body>
@@ -29,30 +29,30 @@
         <div class="filterBox b12 pad8">
           <div class="filterAttrBox padTB8" id="urgencyFilter">
             <div class="normalBoldTitle padLR8">Urgency</div>
-            <div
-              class="iconBtn fas fa-exclamation-triangle cgreen"
+            <i
+              class="fas fa-exclamation-triangle iconBtn  cgreen"
               id="lowUrgency"
-            ></div>
-            <div
+            ></i>
+            <i
               class="iconBtn fas fa-exclamation-triangle cyellow"
               id="mediumUrgency"
-            ></div>
-            <div
+            ></i>
+            <i
               class="iconBtn fas fa-exclamation-triangle cred"
               id="highUrgency"
-            ></div>
+            ></i>
           </div>
           <div class="filterAttrBox padTB8" id="categoryFilter">
             <div class="normalBoldTitle padLR8">Category</div>
-            <div
+            <i
               class="iconBtn fas fa-user-alt cwhite"
               id="personalCategory"
-            ></div>
-            <div
+            ></i>
+            <i
               class="iconBtn fas fa-book-open cwhite"
               id="academicCategory"
-            ></div>
-            <div class="iconBtn fas fa-users cwhite" id="socialCategory"></div>
+            ></i>
+            <i class="iconBtn fas fa-users cwhite" id="socialCategory"></i>
           </div>
           <div class="notCompletedBox mar8 pad8">
             <input
@@ -128,6 +128,6 @@
       <div class="todosBox b8 pad8" id="todosBox"></div>
     </div>
     <div id="snackbar"></div>
-    <script src="src/index.js"></script>
+    <script type="module" src="src/index.js"></script>
   </body>
 </html>

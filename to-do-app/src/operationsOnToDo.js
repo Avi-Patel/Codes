@@ -8,15 +8,10 @@ import {
   bulkUpdateInDatabase,
   bulkDeleteFromDatabase
 } from "/src/server.js";
-import { showSnackbar } from "/src/otherFunctions.js";
+import { showSnackbar, getIndexInLocalDatabase } from "/src/otherFunctions.js";
+import { addActions } from "/src/history.js";
 
-const getIndexInLocalDatabase = (id) => {
-  let index = null;
-  data.allTodos.forEach((toDo, i) => {
-    if (toDo.ID === id) index = i;
-  });
-  return index;
-};
+
 
 export const deleteToDo = (id) => {
   deleteToDoFromDatabase(id)
@@ -51,9 +46,27 @@ export const alterCompletionOfToDo = (id) => {
       updateCountsForRemovedToDo(data.allTodos[index]);
       data.allTodos[index] = returnedToDo;
       checkAndRenderOneToDo(returnedToDo);
+      // console.log("start for add action");
+      addActions("alterCompletion", id);
+      // console.log("ended add action");
     })
     .catch((e) => showSnackbar(e));
 };
+
+const updateToDo = (toDo, updatedToDo) => {
+  updateToDoInDatabase(updatedToDo.ID, updatedToDo)
+    .then((returnedToDo) => {
+      addActions("edit", toDo.ID, { ...returnedToDo }, { ...toDo });
+      toDo.title = returnedToDo.title;
+      toDo.urgency = returnedToDo.urgency;
+      toDo.category = returnedToDo.category;
+      updateCountsForRemovedToDo(toDo);
+      checkAndRenderOneToDo(toDo);
+    })
+    .catch((e) => {
+      showSnackbar(e);
+    });
+}
 
 const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
   const updateBtn = document.querySelector(`#${btnID}`);
@@ -70,15 +83,8 @@ const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
         "#updatedCategory"
       ).selectedIndex;
 
-      updateToDoInDatabase(updatedToDo.ID, updatedToDo).then((returnedToDo) => {
-        toDo.title = returnedToDo.title;
-        toDo.urgency = returnedToDo.urgency;
-        toDo.category = returnedToDo.category;
-        // toDo = returnedToDo;
-        updateCountsForRemovedToDo(returnedToDo);
-        checkAndRenderOneToDo(toDo);
-        updateModal.remove();
-      });
+      updateToDo(toDo, updatedToDo);
+      updateModal.remove();
     }
   });
 };
