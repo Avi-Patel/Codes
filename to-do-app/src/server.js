@@ -8,6 +8,14 @@ const randomBooleanValue = () => Math.random() <= 0.9;
 // else return false;
 // };
 
+export const getIndexInDatabase = (id) => {
+  let index = null;
+  toDos.forEach((toDo, i) => {
+    if (toDo.ID === id) index = i;
+  });
+  return index;
+};
+
 export const getToDoFromDatabase = (id) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
@@ -34,11 +42,7 @@ export const createToDoInDatabase = (toDo) =>
 export const updateToDoInDatabase = (id, toDo) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      let index = null;
-      toDos.forEach((toDoX, i) => {
-        if (toDoX.ID === id) index = i;
-      });
-      copyContent(toDos[index], toDo);
+      copyContent(toDos[getIndexInDatabase(id)], toDo);
       resolve(toDo);
     } else {
       reject("Opps!! Cannot update right now, plz try again after sometime");
@@ -48,24 +52,21 @@ export const updateToDoInDatabase = (id, toDo) =>
 export const deleteToDoFromDatabase = (id) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      let index = null;
-      toDos.forEach((toDoX, i) => {
-        if (toDoX.ID === id) index= i;
-      });
-      console.log(index);
-      toDos.splice(index, 1);
-      resolve(index);
+      toDos.splice(getIndexInDatabase(id), 1);
+      resolve();
     } else {
       reject(
-        "Opps!! something went wrong while deletign TODO, plz try again after sometime"
+        "Opps!! something went wrong while deleting TODO, plz try again after sometime"
       );
     }
   });
 
-export const bulkUpdateInDatabase = (indexs, updatedToDos) =>
+export const bulkUpdateInDatabase = (ids, updatedToDos) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      indexs.forEach((index, i) => (copyContent(toDos[index], updatedToDos[i])));
+      ids.forEach((id,i)=>{
+        copyContent(toDos[getIndexInDatabase(id)],updatedToDos[i]);
+      });
       resolve();
     } else {
       reject("Opps!! Cannot update right now, plz try again after sometime");
@@ -76,10 +77,7 @@ export const bulkDeleteFromDatabase = (ids) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
       ids.forEach((id) => {
-        const index = toDos.forEach((toDoX, i) => {
-          if (toDoX.ID === id) return i;
-        });
-        toDos.splice(index, 1);
+        toDos.splice(getIndexInDatabase(id), 1);
       });
       resolve();
     } else {

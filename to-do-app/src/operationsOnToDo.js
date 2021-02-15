@@ -15,10 +15,12 @@ import { addActions } from "/src/history.js";
 
 export const deleteToDo = (id) => {
   deleteToDoFromDatabase(id)
-    .then((returnedIndex) => {
-      updateCountsForRemovedToDo(data.allTodos[returnedIndex]);
+    .then(() => {
+      const index = getIndexInLocalDatabase(id);
+      addActions("delete", [id], [], [{ ...data.allTodos[index] }]);
+      updateCountsForRemovedToDo(data.allTodos[index]);
       document.querySelector(`[data-id="ID${id}"]`).remove();
-      data.allTodos.splice(returnedIndex, 1);
+      data.allTodos.splice(index, 1);
       updateAnalytics();
     })
     .catch((e) => showSnackbar(e));
@@ -45,18 +47,14 @@ const updateToDo = (toDo, updatedToDo) => {
       addActions("edit", [toDo.ID], [{ ...returnedToDo }], [{ ...toDo }]);
       updateCountsForRemovedToDo(toDo);
       copyContent(toDo, returnedToDo);
-      console.log(toDo);
       checkAndRenderOneToDo(toDo);
     })
-    .catch((e) => {
-      showSnackbar(e);
-    });
+    .catch((e) => showSnackbar(e));
 }
 
 export const alterCompletionOfToDo = (id) => {
   const index = getIndexInLocalDatabase(id);
   const updatedToDo = { ...data.allTodos[index] };
-  console.log(updatedToDo);
   updatedToDo.completed = updatedToDo.completed ? false : true;
   updateToDo(data.allTodos[index], updatedToDo);
 };
@@ -69,12 +67,8 @@ const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
     if (updatedTitle.trim() !== "") {
       const updatedToDo = { ...toDo };
       updatedToDo.title = updatedTitle;
-      updatedToDo.urgency = document.querySelector(
-        "#updatedUrgency"
-      ).selectedIndex;
-      updatedToDo.category = document.querySelector(
-        "#updatedCategory"
-      ).selectedIndex;
+      updatedToDo.urgency = document.querySelector("#updatedUrgency").selectedIndex;
+      updatedToDo.category = document.querySelector("#updatedCategory").selectedIndex;
 
       updateToDo(toDo, updatedToDo);
       updateModal.remove();
@@ -127,7 +121,7 @@ export const updateAllToCompleted = () => {
     indexsForUpdation.push(index);
     toDosforUpdation[toDosforUpdation.length - 1].completed = true;
   });
-  bulkUpdateInDatabase(indexsForUpdation, toDosforUpdation)
+  bulkUpdateInDatabase(data.curOnScreenSelected, toDosforUpdation)
     .then(() => {
       indexsForUpdation.forEach((index) => data.allTodos[index].completed = true);
       addActions("alterCompletionInBulk", [...data.curOnScreenSelected]);
@@ -142,8 +136,7 @@ export const deleteAllSelectedToDos = () => {
   bulkDeleteFromDatabase(idsToBeDeleted)
     .then(() => {
       idsToBeDeleted.forEach((id) => {
-        const index = getIndexInLocalDatabase(id);
-        data.allTodos.splice(index, 1);
+        data.allTodos.splice(getIndexInLocalDatabase(id), 1);
       });
       data.curOnScreenSelected.length = 0;
       displayToDos();
