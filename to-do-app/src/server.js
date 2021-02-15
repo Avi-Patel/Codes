@@ -1,7 +1,7 @@
 import { copyContent } from "/src/otherFunctions.js";
 // const success = true;
 
-const randomBooleanValue = () => Math.random() <= 0.9;
+const randomBooleanValue = () => Math.random() <= 0.98;
 // const number = Math.random();
 // console.log(number);
 // if (number <= 0.9) return true;

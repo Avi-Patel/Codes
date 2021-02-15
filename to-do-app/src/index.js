@@ -9,6 +9,9 @@ console.log("start");
 updateHeaderDate();
 console.log("end");
 
+
+export const getDocumentElementUsingSelector=(selectorString)=> document.querySelector(selectorString);
+
 const changeBtnStyle = (target, selected) => {
   if (selected) {
     target.style.backgroundColor = "rgb(45, 45, 45)";
@@ -18,6 +21,18 @@ const changeBtnStyle = (target, selected) => {
     target.style.boxShadow = "";
   }
 };
+
+export const changeBtnStyleForSelection=(target,selected)=>{
+  if(selected)
+  {
+    target.style.backgroundColor = "rgb(64, 64, 255)";
+    target.style.border = "1px solid white";
+  }
+  else{
+    target.style.backgroundColor = "";
+  }
+}
+
 
 const updateFilter = (event, dataFilter, dataFilterIds) => {
   let anyThingChanged = true;
@@ -85,11 +100,13 @@ window.addEventListener("click", (event) => {
 window.addEventListener("keypress", (event) => {
   if (event.ctrlKey && event.key === 'z') {
     console.log("undo event");
+    clearSelection();
     undo();
   }
   else if(event.ctrlKey && event.key==='r')
   {
     console.log("redo event");
+    clearSelection();
     redo();
   }
 });

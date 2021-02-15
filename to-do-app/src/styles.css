@@ -84,15 +84,16 @@ select:focus {
 }
 .greenBtn {
   padding: 8px 12px;
-  background-color: #3e8e41;
+  /* background-color: #3e8e41; */
+  background-color: black;
   color: white;
   font-weight: bold;
   border-radius: 8px;
-  border: none;
+  border: 1px solid green;
 }
 .greenBtn:hover {
   cursor: pointer;
-  background-color: rgb(13, 87, 13);
+  background-color: rgb(77, 77, 77);
 }
 .textCenter {
   text-align: center;

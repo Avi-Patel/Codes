@@ -26,3 +26,16 @@ export const queriedElements = {
   clearBtn: document.querySelector("#clearBtn"),
   notCompletedCheckBox: document.querySelector("#notCompletedCheckBox")
 };
+
+export const getToDo=(index)=> data.allTodos[index];
+export const pushNewToDo=(toDo)=> data.allTodos.push(toDo);
+export const deleteToDoAtAnyIndex=(index)=> data.allTodos.splice(index,1);
+export const insertToDoAtAnyIndex= (index,toDo)=> data.allTodos.splice(index, 0,toDo);
+export const alterCompletedProperty=(index)=> data.allTodos[index].completed=!data.allTodos[index].completed;
+export const getIndexInLocalDatabase = (id) => {
+  let index = null;
+  data.allTodos.forEach((toDo, i) => {
+    if (toDo.ID === id) index = i;
+  });
+  return index;
+};

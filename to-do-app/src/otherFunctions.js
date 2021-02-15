@@ -1,4 +1,3 @@
-import {data} from "/src/localDataAndElements.js";
 export const updateHeaderDate = () =>
   (document.querySelector(
     "#headerDate"
@@ -12,14 +11,6 @@ export const showSnackbar = (message) => {
     () => (snackbar.className = snackbar.className.replace("show", "")),
     3000
   );
-};
-
-export const getIndexInLocalDatabase = (id) => {
-  let index = null;
-  data.allTodos.forEach((toDo, i) => {
-    if (toDo.ID === id) index = i;
-  });
-  return index;
 };
 
 export const copyContent=(toDox, toDoy)=>{

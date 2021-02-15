@@ -1,8 +1,9 @@
 import { checkAndRenderOneToDo } from "/src/renderFunction.js";
-import { data } from "/src/localDataAndElements.js";
+import { data , pushNewToDo} from "/src/localDataAndElements.js";
 import { createToDoInDatabase } from "/src/server.js";
 import { showSnackbar } from "/src/otherFunctions.js";
 import {addActions} from "/src/history.js";
+import {getDocumentElementUsingSelector} from "/src/index.js";
 
 export const createElement = (
   tagName,
@@ -60,37 +61,35 @@ export const createToDoNode = (toDoItem) => {
   return toDoNode;
 };
 
-export const createToDoObject = (title, urgency, category) => {
-  const toDoItem = {
+export const createToDoObject = (title, urgency, category) => ({
     ID: data.counter++,
     dateAsID: new Date().toLocaleString(),
     title: title,
     urgency: urgency,
     category: category,
     completed: false
-  };
-  return toDoItem;
-};
+  });
 
+
+
+//split into 2 fun
 export const createAndAddTodo = () => {
-  const TDTitleInput = document.querySelector("#TDTitle");
+  const TDTitleInput = getDocumentElementUsingSelector("#TDTitle"); ;
   const title = TDTitleInput.value.trim();
-  const urgency = document.querySelector("#urgencySelect").selectedIndex;
-  const category = document.querySelector("#categorySelect").selectedIndex;
-
-  TDTitleInput.value = "";
+  const urgency = getDocumentElementUsingSelector("#urgencySelect").selectedIndex; 
+  const category =getDocumentElementUsingSelector("#categorySelect").selectedIndex;
   TDTitleInput.focus();
 
   const toDoItem = createToDoObject(title, urgency, category);
   createToDoInDatabase(toDoItem)
     .then(() => {
-      data.allTodos.push(toDoItem);
+      pushNewToDo(toDoItem);
       addActions("create", [toDoItem.ID],[{...toDoItem}]);
       checkAndRenderOneToDo(toDoItem);
+      TDTitleInput.value = "";
     })
     .catch((e) => {
       data.counter--;
-      TDTitleInput.value = title;
       showSnackbar(e);
     });
 };

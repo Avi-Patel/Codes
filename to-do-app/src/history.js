@@ -1,8 +1,9 @@
 import { checkAndRenderOneToDo, displayToDos } from "/src/renderFunction.js";
 import { updateToDoInDatabase, deleteToDoFromDatabase, createToDoInDatabase, bulkUpdateInDatabase } from "/src/server.js";
-import { data, queriedElements } from "/src/localDataAndElements.js";
 import { updateCountsForRemovedToDo } from "/src/analytics.js";
-import { showSnackbar, getIndexInLocalDatabase, copyContent } from "/src/otherFunctions.js";
+import { showSnackbar, copyContent } from "/src/otherFunctions.js";
+import { getDocumentElementUsingSelector } from "/src/index.js";
+import { data, pushNewToDo, deleteToDoAtAnyIndex, insertToDoAtAnyIndex, alterCompletedProperty, getIndexInLocalDatabase } from "/src/localDataAndElements.js";
 
 const history = {
   position: -1,
@@ -14,14 +15,14 @@ const createToDoUndoRedo = (id, toDo, isUndo) => {
     deleteToDoFromDatabase(id).then(() => {
       data.allTodos.splice(getIndexInLocalDatabase(id), 1);
       updateCountsForRemovedToDo(toDo);
-      document.querySelector(`[data-id="ID${id}"]`).remove();
+      getDocumentElementUsingSelector(`[data-id="ID${id}"]`).remove(); // create functions
       history.position--;
     })
       .catch((e) => showSnackbar(e));
   }
   else {
     createToDoInDatabase(toDo).then(() => {
-      data.allTodos.push({ ...toDo });
+      pushNewToDo({ ...toDo });
       checkAndRenderOneToDo(data.allTodos[data.allTodos.length - 1]);
       history.position++;
     })
@@ -46,9 +47,9 @@ const deleteToDoUndoRedo = (id, toDo, isUndo) => {
   if (isUndo) {
     createToDoInDatabase(toDo)
       .then(() => {
-        const index=findIndexToInsert(id);
-        data.allTodos.splice(index, 0, toDo);
-        console.log(data.allTodos);
+        const index = findIndexToInsert(id);
+        insertToDoAtAnyIndex(index, toDo);
+        // data.allTodos.splice(index, 0, toDo);
         history.position--;
         displayToDos();
       })
@@ -57,7 +58,8 @@ const deleteToDoUndoRedo = (id, toDo, isUndo) => {
   else {
     deleteToDoFromDatabase(id)
       .then(() => {
-        data.allTodos.splice(getIndexInLocalDatabase(id), 1);
+        deleteToDoAtAnyIndex(getIndexInLocalDatabase(id));
+        // data.allTodos.splice(getIndexInLocalDatabase(id), 1);
         history.position++;
         displayToDos();
       })
@@ -74,6 +76,7 @@ const editToDoUndoRedo = (id, toDo, oldToDo, isUndo) => {
   else {
     toDoCopy = { ...toDo };
   }
+  console.log(id, toDoCopy);
   updateToDoInDatabase(id, toDoCopy)
     .then((returnedToDo) => {
       copyContent(data.allTodos[getIndexInLocalDatabase(id)], returnedToDo);
@@ -90,42 +93,19 @@ const editToDoUndoRedo = (id, toDo, oldToDo, isUndo) => {
     .catch((e) => showSnackbar(e));
 }
 
-
-
-// const alterCompletionOfToDoForUndoRedo = (id, isUndo) => {
-//   const index = getIndexInLocalDatabase(id);
-//   const updatedToDo = { ...data.allTodos[index] };
-//   updatedToDo.completed = updatedToDo.completed ? false : true;
-//   updateToDoInDatabase(id, updatedToDo)
-//     .then((returnedToDo) => {
-//       updateCountsForRemovedToDo(data.allTodos[index]);
-//       copyContent(data.allTodos[index],returnedToDo);
-//       // data.allTodos[index] = returnedToDo;
-//       checkAndRenderOneToDo(returnedToDo);
-//       if (isUndo) {
-//         history.position--;
-//       }
-//       else {
-//         history.position++;
-//       }
-//     })
-//     .catch((e) => showSnackbar(e));
-// }
-
 const deleteInBulk = () => { };
 
 const alterCompletionInBulkUndoRedo = (ids, isUndo) => {
-  console.log("alterCompletionInBulk", ids);
   const indexs = [];
   const toDos = []
   ids.forEach((id, i) => {
     const index = getIndexInLocalDatabase(id);
     indexs.push(index);
     toDos.push({ ...data.allTodos[index] });
-    toDos[i].completed = toDos[i].completed ? false : true;
+    toDos[i].completed = !toDos[i].completed;
   })
-  bulkUpdateInDatabase(indexs, toDos).then(() => {
-    indexs.forEach((index) => data.allTodos[index].completed = data.allTodos[index].completed ? false : true);
+  bulkUpdateInDatabase(ids, toDos).then(() => {
+    indexs.forEach((index) => alterCompletedProperty(index));
     displayToDos();
     if (isUndo) {
       history.position--;
@@ -140,6 +120,8 @@ const alterCompletionInBulkUndoRedo = (ids, isUndo) => {
 export const undo = () => {
   if (history.position === -1) return;
   console.log(history.position);
+
+  // make consts
   switch (history["actions"][history.position].command) {
     case "edit":
       console.log("Edit");
@@ -187,13 +169,13 @@ export const addActions = (commandType, toDoIDs, toDos, oldToDos) => {
     "command": commandType,
     "IDs": toDoIDs,
   }
-  if (toDos !== undefined) {
+  if (toDos) {  //!toDos
     newAction["toDos"] = toDos;
   }
-  if (oldToDos !== undefined) {
+  if (oldToDos) {
     newAction["oldToDos"] = oldToDos;
   }
   history.actions.push(newAction);
   history.position++;
-  console.log(history.position, history.actions[history.position]);
+  // console.log(history.position, history.actions[history.position]);
 };

@@ -8,9 +8,11 @@ import {
 } from "/src/operationsOnToDo.js";
 import { updateAnalytics } from "/src/analytics.js";
 import { createToDoNode } from "/src/createFunctions.js";
+import {getDocumentElementUsingSelector} from "/src/index.js";
 
 const addListenerForToDo = (id) => {
-  const toDoitem = document.querySelector(`[data-id="ID${id}"]`);
+  const toDoitem = getDocumentElementUsingSelector(`[data-id="ID${id}"]`);
+  // use data attribute
   toDoitem.addEventListener("click", (event) => {
     switch (event.target.id) {
       case "markCompleted" + id:
@@ -34,7 +36,7 @@ const addListenerForToDo = (id) => {
 };
 
 export const checkAndRenderOneToDo = (toDoItem) => {
-  const oldToDo = document.querySelector(`[data-id="ID${toDoItem.ID}"]`);
+  const oldToDo = getDocumentElementUsingSelector(`[data-id="ID${toDoItem.ID}"]`);
   const conditionSatisfied =
     checkWithFilter(toDoItem) &&
     containSearchedWord(queriedElements.searchInput.value, toDoItem.title);
@@ -42,14 +44,17 @@ export const checkAndRenderOneToDo = (toDoItem) => {
   if (conditionSatisfied) {
     console.log("Satisfied");
     data.totalCount++;
-    if (toDoItem.completed) data.countCompleted++;
-    if (oldToDo !== undefined && oldToDo !== null) {
+    if (toDoItem.completed){ 
+      data.countCompleted++;
+    }
+    //!oldToDo
+    if (oldToDo) {
       queriedElements.todosBox.replaceChild(createToDoNode(toDoItem), oldToDo);
     } else {
       queriedElements.todosBox.appendChild(createToDoNode(toDoItem));
     }
     addListenerForToDo(toDoItem.ID);
-  } else if (oldToDo !== null || oldToDo !== undefined) {
+  } else if (oldToDo) {
     oldToDo.remove();
   }
   updateAnalytics();

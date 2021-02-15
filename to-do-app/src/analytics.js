@@ -9,8 +9,6 @@ export const updateCountsForRemovedToDo = (toDo) => {
 
 export const updateAnalytics = () => {
   queriedElements.percentageText.textContent =
-    data.totalCount === 0
-      ? "0 %"
-      : Math.round((data.countCompleted / data.totalCount) * 100) + " %";
+    data.totalCount === 0 ? "0 %" : Math.round((data.countCompleted / data.totalCount) * 100) + " %";
   queriedElements.ratioText.textContent = `${data.countCompleted} / ${data.totalCount}`;
 };
