@@ -5,8 +5,9 @@ import { displayToDos } from "/src/renderFunction.js";
 import { updateAllToCompleted, deleteAllSelectedToDos, clearSelection } from "/src/operationsOnToDo.js";
 import {undo, redo} from "/src/history.js";
 
-console.log("strat");
+console.log("start");
 updateHeaderDate();
+console.log("end");
 
 const changeBtnStyle = (target, selected) => {
   if (selected) {

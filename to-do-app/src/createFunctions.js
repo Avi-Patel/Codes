@@ -2,6 +2,7 @@ import { checkAndRenderOneToDo } from "/src/renderFunction.js";
 import { data } from "/src/localDataAndElements.js";
 import { createToDoInDatabase } from "/src/server.js";
 import { showSnackbar } from "/src/otherFunctions.js";
+import {addActions} from "/src/history.js";
 
 export const createElement = (
   tagName,
@@ -84,6 +85,7 @@ export const createAndAddTodo = () => {
   createToDoInDatabase(toDoItem)
     .then(() => {
       data.allTodos.push(toDoItem);
+      addActions("create", [toDoItem.ID],[{...toDoItem}]);
       checkAndRenderOneToDo(toDoItem);
     })
     .catch((e) => {

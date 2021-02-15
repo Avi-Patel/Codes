@@ -1,3 +1,4 @@
+import {data} from "/src/localDataAndElements.js";
 export const updateHeaderDate = () =>
   (document.querySelector(
     "#headerDate"
@@ -20,3 +21,9 @@ export const getIndexInLocalDatabase = (id) => {
   });
   return index;
 };
+
+export const copyContent=(toDox, toDoy)=>{
+  Object.keys(toDox).forEach((key)=>{
+    toDox[key]=toDoy[key];
+  })
+}

@@ -8,7 +8,7 @@ import {
   bulkUpdateInDatabase,
   bulkDeleteFromDatabase
 } from "/src/server.js";
-import { showSnackbar, getIndexInLocalDatabase } from "/src/otherFunctions.js";
+import { showSnackbar, getIndexInLocalDatabase, copyContent } from "/src/otherFunctions.js";
 import { addActions } from "/src/history.js";
 
 
@@ -37,36 +37,29 @@ export const addOrRemoveFromSeleted = (index) => {
   }
 };
 
-export const alterCompletionOfToDo = (id) => {
-  const index = getIndexInLocalDatabase(id);
-  const updatedToDo = { ...data.allTodos[index] };
-  updatedToDo.completed = updatedToDo.completed ? false : true;
-  updateToDoInDatabase(id, updatedToDo)
-    .then((returnedToDo) => {
-      updateCountsForRemovedToDo(data.allTodos[index]);
-      data.allTodos[index] = returnedToDo;
-      checkAndRenderOneToDo(returnedToDo);
-      // console.log("start for add action");
-      addActions("alterCompletion", id);
-      // console.log("ended add action");
-    })
-    .catch((e) => showSnackbar(e));
-};
+
 
 const updateToDo = (toDo, updatedToDo) => {
   updateToDoInDatabase(updatedToDo.ID, updatedToDo)
     .then((returnedToDo) => {
-      addActions("edit", toDo.ID, { ...returnedToDo }, { ...toDo });
-      toDo.title = returnedToDo.title;
-      toDo.urgency = returnedToDo.urgency;
-      toDo.category = returnedToDo.category;
+      addActions("edit", [toDo.ID], [{ ...returnedToDo }], [{ ...toDo }]);
       updateCountsForRemovedToDo(toDo);
+      copyContent(toDo, returnedToDo);
+      console.log(toDo);
       checkAndRenderOneToDo(toDo);
     })
     .catch((e) => {
       showSnackbar(e);
     });
 }
+
+export const alterCompletionOfToDo = (id) => {
+  const index = getIndexInLocalDatabase(id);
+  const updatedToDo = { ...data.allTodos[index] };
+  console.log(updatedToDo);
+  updatedToDo.completed = updatedToDo.completed ? false : true;
+  updateToDo(data.allTodos[index], updatedToDo);
+};
 
 const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
   const updateBtn = document.querySelector(`#${btnID}`);
@@ -114,22 +107,30 @@ export const clearSelection = () => {
   data.curOnScreenSelected.length = 0;
 };
 
+const filterCurSelectedToDoArray = (ids) => {
+  const newIds = [];
+  ids.forEach((id) => {
+    if (!data.allTodos[getIndexInLocalDatabase(id)].completed) {
+      newIds.push(id);
+    }
+  })
+  return newIds;
+}
+
 export const updateAllToCompleted = () => {
   const toDosforUpdation = [];
-  const idsForUpdation = [];
-
+  const indexsForUpdation = [];
+  data.curOnScreenSelected = filterCurSelectedToDoArray(data.curOnScreenSelected);
   data.curOnScreenSelected.forEach((id, i) => {
     const index = getIndexInLocalDatabase(id);
     toDosforUpdation.push({ ...data.allTodos[index] });
-    idsForUpdation.push(index);
-    toDosforUpdation[i].completed = true;
+    indexsForUpdation.push(index);
+    toDosforUpdation[toDosforUpdation.length - 1].completed = true;
   });
-
-  bulkUpdateInDatabase(idsForUpdation, toDosforUpdation)
+  bulkUpdateInDatabase(indexsForUpdation, toDosforUpdation)
     .then(() => {
-      idsForUpdation.forEach((index) => {
-        data.allTodos[index].completed = true;
-      });
+      indexsForUpdation.forEach((index) => data.allTodos[index].completed = true);
+      addActions("alterCompletionInBulk", [...data.curOnScreenSelected]);
       data.curOnScreenSelected.length = 0;
       displayToDos();
     })

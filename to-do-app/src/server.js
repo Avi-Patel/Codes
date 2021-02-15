@@ -1,3 +1,4 @@
+import { copyContent } from "/src/otherFunctions.js";
 // const success = true;
 
 const randomBooleanValue = () => Math.random() <= 0.9;
@@ -37,7 +38,7 @@ export const updateToDoInDatabase = (id, toDo) =>
       toDos.forEach((toDoX, i) => {
         if (toDoX.ID === id) index = i;
       });
-      toDos[index] = { ...toDo };
+      copyContent(toDos[index], toDo);
       resolve(toDo);
     } else {
       reject("Opps!! Cannot update right now, plz try again after sometime");
@@ -47,9 +48,11 @@ export const updateToDoInDatabase = (id, toDo) =>
 export const deleteToDoFromDatabase = (id) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      let index = toDos.forEach((toDoX, i) => {
-        if (toDoX.ID === id) return i;
+      let index = null;
+      toDos.forEach((toDoX, i) => {
+        if (toDoX.ID === id) index= i;
       });
+      console.log(index);
       toDos.splice(index, 1);
       resolve(index);
     } else {
@@ -59,10 +62,10 @@ export const deleteToDoFromDatabase = (id) =>
     }
   });
 
-export const bulkUpdateInDatabase = (ids, updatedToDos) =>
+export const bulkUpdateInDatabase = (indexs, updatedToDos) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      ids.forEach((id, i) => (toDos[id] = updatedToDos[i]));
+      indexs.forEach((index, i) => (copyContent(toDos[index], updatedToDos[i])));
       resolve();
     } else {
       reject("Opps!! Cannot update right now, plz try again after sometime");
@@ -78,7 +81,6 @@ export const bulkDeleteFromDatabase = (ids) =>
         });
         toDos.splice(index, 1);
       });
-
       resolve();
     } else {
       reject(
