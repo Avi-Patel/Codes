@@ -26,7 +26,7 @@ const history = {
   actions: [],
 };
 
-const createToDoUndoRedo = (id, toDo, isUndo) => {
+const undoRedoOnCreate = (id, toDo, isUndo) => {
   if (isUndo) {
     deleteToDoFromDatabase(id)
       .then(() => {
@@ -61,7 +61,7 @@ const findIndexToInsert = (id) => {
   return index;
 };
 
-const deleteToDoUndoRedo = (id, toDo, isUndo) => {
+const undoRedoOnDelete = (id, toDo, isUndo) => {
   if (isUndo) {
     createToDoInDatabase(toDo)
       .then(() => {
@@ -82,7 +82,7 @@ const deleteToDoUndoRedo = (id, toDo, isUndo) => {
   }
 };
 
-const editToDoUndoRedo = (id, toDo, oldToDo, isUndo) => {
+const undoRedoOnEdit = (id, toDo, oldToDo, isUndo) => {
   let toDoCopy = {};
   if (isUndo) {
     toDoCopy = { ...oldToDo };
@@ -103,7 +103,7 @@ const editToDoUndoRedo = (id, toDo, oldToDo, isUndo) => {
     .catch((e) => showSnackbar(e));
 };
 
-const deleteInBulkUndoRedo = (ids, deletedToDos, isUndo) => {
+const undoRedoOnDeleteInBulk = (ids, deletedToDos, isUndo) => {
   if (isUndo) {
     bulkCreateInDatabase(deletedToDos).then(() => {
       deletedToDos.forEach((toDo) =>
@@ -121,7 +121,7 @@ const deleteInBulkUndoRedo = (ids, deletedToDos, isUndo) => {
   }
 };
 
-const alterCompletionInBulkUndoRedo = (ids, isUndo) => {
+const undoRedoOnAlterCompletionInBulk = (ids, isUndo) => {
   const indexs = [];
   const toDos = [];
   ids.forEach((id, i) => {
@@ -150,7 +150,7 @@ export const undo = () => {
   // make consts
   switch (history["actions"][history.position].command) {
     case commands.EDIT:
-      editToDoUndoRedo(
+      undoRedoOnEdit(
         history["actions"][history.position]["IDs"][0],
         history["actions"][history.position]["toDos"][0],
         history["actions"][history.position]["oldToDos"][0],
@@ -158,27 +158,27 @@ export const undo = () => {
       );
       break;
     case commands.ALTERCOMPLETIONINBULK:
-      alterCompletionInBulkUndoRedo(
+      undoRedoOnAlterCompletionInBulk(
         history["actions"][history.position]["IDs"],
         true
       );
       break;
     case commands.CREATE:
-      createToDoUndoRedo(
+      undoRedoOnCreate(
         history["actions"][history.position]["IDs"][0],
         history["actions"][history.position]["toDos"][0],
         true
       );
       break;
     case commands.DELETE:
-      deleteToDoUndoRedo(
+      undoRedoOnDelete(
         history["actions"][history.position]["IDs"][0],
         history["actions"][history.position]["oldToDos"][0],
         true
       );
       break;
     case commands.DELETEINBULK:
-      deleteInBulkUndoRedo(
+      undoRedoOnDeleteInBulk(
         history["actions"][history.position]["IDs"],
         history["actions"][history.position]["oldToDos"],
         true
@@ -193,7 +193,7 @@ export const redo = () => {
   console.log(history.position);
   switch (history["actions"][history.position + 1].command) {
     case commands.EDIT:
-      editToDoUndoRedo(
+      undoRedoOnEdit(
         history["actions"][history.position + 1]["IDs"][0],
         history["actions"][history.position + 1]["toDos"][0],
         history["actions"][history.position + 1]["oldToDos"][0],
@@ -201,27 +201,27 @@ export const redo = () => {
       );
       break;
     case commands.ALTERCOMPLETIONINBULK:
-      alterCompletionInBulkUndoRedo(
+      undoRedoOnAlterCompletionInBulk(
         history["actions"][history.position + 1]["IDs"],
         false
       );
       break;
     case commands.CREATE:
-      createToDoUndoRedo(
+      undoRedoOnCreate(
         history["actions"][history.position + 1]["IDs"][0],
         history["actions"][history.position + 1]["toDos"][0],
         false
       );
       break;
     case commands.DELETE:
-      deleteToDoUndoRedo(
+      undoRedoOnDelete(
         history["actions"][history.position + 1]["IDs"][0],
         history["actions"][history.position + 1]["oldToDos"][0],
         false
       );
       break;
     case commands.DELETEINBULK:
-      deleteInBulkUndoRedo(
+      undoRedoOnDeleteInBulk(
         history["actions"][history.position + 1]["IDs"],
         history["actions"][history.position + 1]["oldToDos"],
         false

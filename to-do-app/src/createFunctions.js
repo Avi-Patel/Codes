@@ -89,7 +89,6 @@ const createToDo = (title, urgency, category) => {
     });
 };
 
-//split into 2 fun
 export const createAndAddTodo = () => {
   const TDTitleInput = getDocumentElementUsingSelector("#TDTitle");
   const title = TDTitleInput.value.trim();
