@@ -325,6 +325,7 @@ select:focus {
   height: 20px;
   border-radius: 50%;
   background-color: white;
+  border: none;
 }
 .selectBlueCircle {
   width: 20px;

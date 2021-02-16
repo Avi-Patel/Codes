@@ -1,4 +1,12 @@
-import { data,getToDo ,deleteToDoAtAnyIndex,getIndexInLocalDatabase,alterCompletedProperty} from "/src/localDataAndElements.js";
+import {
+  data,
+  getToDo,
+  deleteToDoAtAnyIndex,
+  getIndexInLocalDatabase,
+  alterCompletedProperty,
+  emptyCurrentSelectedArray,
+  deleteIdFromCurrentSelected,
+} from "/src/localDataAndElements.js";
 import { updateCountsForRemovedToDo, updateAnalytics } from "/src/analytics.js";
 import { createModal } from "/src/createFunctions.js";
 import { checkAndRenderOneToDo, displayToDos } from "/src/renderFunction.js";
@@ -6,62 +14,62 @@ import {
   deleteToDoFromDatabase,
   updateToDoInDatabase,
   bulkUpdateInDatabase,
-  bulkDeleteFromDatabase
+  bulkDeleteFromDatabase,
 } from "/src/server.js";
 import { showSnackbar, copyContent } from "/src/otherFunctions.js";
 import { addActions } from "/src/history.js";
-import { getDocumentElementUsingSelector , changeBtnStyleForSelection} from "/src/index.js";
-
-
+import {
+  getDocumentElementUsingSelector,
+  deleteDocumentElementUsingSelector,
+  changeBtnStyleForSelection,
+} from "/src/index.js";
+import { commands } from "/src/consts.js";
 
 export const deleteToDo = (id) => {
   deleteToDoFromDatabase(id)
     .then(() => {
       const index = getIndexInLocalDatabase(id);
-      addActions("delete", [id], [], [{ ...getToDo(index)}]);
+      addActions(commands.DELETE, [id], undefined, [{ ...getToDo(index) }]);
       updateCountsForRemovedToDo(data.allTodos[index]);
-      //fun
-      getDocumentElementUsingSelector(`[data-id="ID${id}"]`).remove();
+      deleteDocumentElementUsingSelector(`[data-id="${id}"]`);
       deleteToDoAtAnyIndex(index);
-      // data.allTodos.splice(index, 1);
       updateAnalytics();
     })
     .catch((e) => showSnackbar(e));
 };
 
-
-
-//split
-export const addOrRemoveFromSeleted = (index) => {
-  const indexInSelected = data.curOnScreenSelected.indexOf(index);
-  const selectCircle = getDocumentElementUsingSelector(`#selectToDo${index}`);
+export const addOrRemoveFromSelected = (id) => {
+  const indexInSelected = data.curOnScreenSelected.indexOf(id);
+  const selectCircle = getDocumentElementUsingSelector(
+    `[data-id="${id}"] [data-type=${commands.SELECT}]`
+  );
   if (indexInSelected === -1) {
-    data.curOnScreenSelected.push(index);
-    //fun
+    data.curOnScreenSelected.push(id);
     changeBtnStyleForSelection(selectCircle, true);
-    // selectCircle.style.backgroundColor = "rgb(64, 64, 255)";
-    // selectCircle.style.border = "1px solid white";
   } else {
     data.curOnScreenSelected.splice(indexInSelected, 1);
-    // selectCircle.style.backgroundColor = "";
     changeBtnStyleForSelection(selectCircle, false);
   }
 };
 
-
-
 const updateToDo = (toDo, updatedToDo) => {
   updateToDoInDatabase(updatedToDo.ID, updatedToDo)
     .then((returnedToDo) => {
-      addActions("edit", [toDo.ID], [{ ...returnedToDo }], [{ ...toDo }]);
+      addActions(
+        commands.EDIT,
+        [toDo.ID],
+        [{ ...returnedToDo }],
+        [{ ...toDo }]
+      );
       updateCountsForRemovedToDo(toDo);
       copyContent(toDo, returnedToDo);
       checkAndRenderOneToDo(toDo);
     })
     .catch((e) => showSnackbar(e));
-}
+};
 
 export const alterCompletionOfToDo = (id) => {
+  deleteIdFromCurrentSelected(id);
   const index = getIndexInLocalDatabase(id);
   const updatedToDo = { ...getToDo(index) };
   updatedToDo.completed = !updatedToDo.completed;
@@ -71,13 +79,17 @@ export const alterCompletionOfToDo = (id) => {
 const addListenerToModalUpdateBtn = (btnID, toDo, updateModal) => {
   const updateBtn = getDocumentElementUsingSelector(`#${btnID}`);
   updateBtn.addEventListener("click", () => {
-    const updatedTitle = getDocumentElementUsingSelector("#updateToDoTitle").value;
+    const updatedTitle = updateModal.querySelector("#updateToDoTitle").value;
 
     if (updatedTitle.trim() !== "") {
       const updatedToDo = { ...toDo };
       updatedToDo.title = updatedTitle;
-      updatedToDo.urgency = getDocumentElementUsingSelector("#updatedUrgency").selectedIndex;
-      updatedToDo.category = getDocumentElementUsingSelector("#updatedCategory").selectedIndex;
+      updatedToDo.urgency = updateModal.querySelector(
+        "#updatedUrgency"
+      ).selectedIndex;
+      updatedToDo.category = updateModal.querySelector(
+        "#updatedCategory"
+      ).selectedIndex;
 
       updateToDo(toDo, updatedToDo);
       updateModal.remove();
@@ -103,11 +115,13 @@ export const editToDo = (id) => {
 };
 
 export const clearSelection = () => {
-  data.curOnScreenSelected.forEach((index) => {
-    const selectCircle = getDocumentElementUsingSelector(`#selectToDo${index}`);
-    changeBtnStyleForSelection(selectCircle,false);
+  data.curOnScreenSelected.forEach((id) => {
+    const selectCircle = getDocumentElementUsingSelector(
+      `[data-id="${id}"] [data-type=${commands.SELECT}]`
+    );
+    changeBtnStyleForSelection(selectCircle, false);
   });
-  data.curOnScreenSelected.length = 0;
+  emptyCurrentSelectedArray();
 };
 
 const filterCurSelectedToDoArray = (ids) => {
@@ -116,39 +130,55 @@ const filterCurSelectedToDoArray = (ids) => {
     if (!getToDo(getIndexInLocalDatabase(id)).completed) {
       newIds.push(id);
     }
-  })
+  });
   return newIds;
-}
+};
+
+const makeArrayOfIndexsAndToDos = (selectedIds, indexs, toDos) => {
+  selectedIds.forEach((id, i) => {
+    const index = getIndexInLocalDatabase(id);
+    toDos.push({ ...getToDo(index) });
+    indexs.push(index);
+    toDos[toDos.length - 1].completed = true;
+  });
+};
 
 export const updateAllToCompleted = () => {
   const toDosforUpdation = [];
   const indexsForUpdation = [];
-  data.curOnScreenSelected = filterCurSelectedToDoArray(data.curOnScreenSelected);
-  data.curOnScreenSelected.forEach((id, i) => {
-    const index = getIndexInLocalDatabase(id);
-    toDosforUpdation.push({ ...getToDo(index) });
-    indexsForUpdation.push(index);
-    toDosforUpdation[toDosforUpdation.length - 1].completed = true;
-  });
+  data.curOnScreenSelected = filterCurSelectedToDoArray(
+    data.curOnScreenSelected
+  );
+  makeArrayOfIndexsAndToDos(
+    data.curOnScreenSelected,
+    indexsForUpdation,
+    toDosforUpdation
+  );
   bulkUpdateInDatabase(data.curOnScreenSelected, toDosforUpdation)
     .then(() => {
       indexsForUpdation.forEach((index) => alterCompletedProperty(index));
-      addActions("alterCompletionInBulk", [...data.curOnScreenSelected]);
-      data.curOnScreenSelected.length = 0;
+      addActions(commands.ALTERCOMPLETIONINBULK, [...data.curOnScreenSelected]);
+      emptyCurrentSelectedArray();
       displayToDos();
     })
     .catch((e) => showSnackbar(e));
 };
 
 export const deleteAllSelectedToDos = () => {
-  const idsToBeDeleted = [...data.curOnScreenSelected];
-  bulkDeleteFromDatabase(idsToBeDeleted)
+  bulkDeleteFromDatabase(data.curOnScreenSelected)
     .then(() => {
-      idsToBeDeleted.forEach((id) => {
+      const deletedToDos = [];
+      data.curOnScreenSelected.forEach((id) => {
+        deletedToDos.push({ ...getToDo(getIndexInLocalDatabase(id)) });
         deleteToDoAtAnyIndex(getIndexInLocalDatabase(id));
-        // data.allTodos.splice(getIndexInLocalDatabase(id), 1);
       });
-      data.curOnScreenSelected.length = 0;
+      addActions(
+        commands.DELETEINBULK,
+        [...data.curOnScreenSelected],
+        undefined,
+        deletedToDos
+      );
+      emptyCurrentSelectedArray();
       displayToDos();
     })
     .catch((e) => showSnackbar(e));

@@ -1,33 +1,44 @@
-import { data, queriedElements } from "/src/localDataAndElements.js";
+import {
+  data,
+  queriedElements,
+  emptyCurrentSelectedArray,
+} from "/src/localDataAndElements.js";
 import { checkWithFilter, containSearchedWord } from "/src/filter.js";
 import {
   alterCompletionOfToDo,
-  addOrRemoveFromSeleted,
+  addOrRemoveFromSelected,
   deleteToDo,
-  editToDo
+  editToDo,
 } from "/src/operationsOnToDo.js";
 import { updateAnalytics } from "/src/analytics.js";
 import { createToDoNode } from "/src/createFunctions.js";
-import {getDocumentElementUsingSelector} from "/src/index.js";
+import {
+  getDocumentElementUsingSelector,
+  extractClosestNodeFromPath,
+} from "/src/index.js";
+import { commands } from "/src/consts.js";
 
-const addListenerForToDo = (id) => {
-  const toDoitem = getDocumentElementUsingSelector(`[data-id="ID${id}"]`);
-  // use data attribute
-  toDoitem.addEventListener("click", (event) => {
-    switch (event.target.id) {
-      case "markCompleted" + id:
+const addListenerForToDo = (newToDo) => {
+  newToDo.addEventListener("click", (event) => {
+    const targetButton = event.target.dataset
+      ? event.target
+      : extractClosestNodeFromPath(event, "button");
+    console.log(targetButton);
+    const id = parseInt(newToDo.dataset.id);
+    switch (targetButton.dataset.type) {
+      case commands.MARKCOMPLETED:
         alterCompletionOfToDo(id);
         break;
-      case "selectToDo" + id:
-        addOrRemoveFromSeleted(id);
+      case commands.SELECT:
+        addOrRemoveFromSelected(id);
         break;
-      case "deleteToDo" + id:
+      case commands.DELETE:
         deleteToDo(id);
-        data.curOnScreenSelected.length = 0;
+        emptyCurrentSelectedArray();
         break;
-      case "editToDo" + id:
+      case commands.EDIT:
         editToDo(id);
-        data.curOnScreenSelected.length = 0;
+        emptyCurrentSelectedArray();
         break;
       default:
         break;
@@ -36,7 +47,9 @@ const addListenerForToDo = (id) => {
 };
 
 export const checkAndRenderOneToDo = (toDoItem) => {
-  const oldToDo = getDocumentElementUsingSelector(`[data-id="ID${toDoItem.ID}"]`);
+  const oldToDoNode = getDocumentElementUsingSelector(
+    `[data-id="${toDoItem.ID}"]`
+  );
   const conditionSatisfied =
     checkWithFilter(toDoItem) &&
     containSearchedWord(queriedElements.searchInput.value, toDoItem.title);
@@ -44,18 +57,18 @@ export const checkAndRenderOneToDo = (toDoItem) => {
   if (conditionSatisfied) {
     console.log("Satisfied");
     data.totalCount++;
-    if (toDoItem.completed){ 
+    if (toDoItem.completed) {
       data.countCompleted++;
     }
-    //!oldToDo
-    if (oldToDo) {
-      queriedElements.todosBox.replaceChild(createToDoNode(toDoItem), oldToDo);
+    const newtoDoNode = createToDoNode(toDoItem);
+    if (oldToDoNode) {
+      queriedElements.todosBox.replaceChild(newtoDoNode, oldToDoNode);
     } else {
-      queriedElements.todosBox.appendChild(createToDoNode(toDoItem));
+      queriedElements.todosBox.appendChild(newtoDoNode);
     }
-    addListenerForToDo(toDoItem.ID);
-  } else if (oldToDo) {
-    oldToDo.remove();
+    addListenerForToDo(newtoDoNode);
+  } else if (oldToDoNode) {
+    oldToDoNode.remove();
   }
   updateAnalytics();
 };
@@ -72,13 +85,15 @@ export const displayToDos = () => {
     const conditionSatisfied =
       checkWithFilter(toDoItem) &&
       containSearchedWord(queriedElements.searchInput.value, toDoItem.title);
+    console.log(queriedElements.searchInput.value);
     if (conditionSatisfied) {
       totalCount++;
       if (toDoItem.completed) {
         countCompleted++;
       }
-      queriedElements.todosBox.appendChild(createToDoNode(toDoItem));
-      addListenerForToDo(toDoItem.ID);
+      const newtoDoNode = createToDoNode(toDoItem);
+      queriedElements.todosBox.appendChild(newtoDoNode);
+      addListenerForToDo(newtoDoNode);
     }
   });
   data.curOnScreenSelected.length = 0;

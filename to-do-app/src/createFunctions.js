@@ -1,9 +1,13 @@
 import { checkAndRenderOneToDo } from "/src/renderFunction.js";
-import { data , pushNewToDo} from "/src/localDataAndElements.js";
+import { data, pushNewToDo } from "/src/localDataAndElements.js";
 import { createToDoInDatabase } from "/src/server.js";
 import { showSnackbar } from "/src/otherFunctions.js";
-import {addActions} from "/src/history.js";
-import {getDocumentElementUsingSelector} from "/src/index.js";
+import { addActions } from "/src/history.js";
+import {
+  getDocumentElementUsingSelector,
+  emptyInputTextBox,
+} from "/src/index.js";
+import { commands } from "/src/consts.js";
 
 export const createElement = (
   tagName,
@@ -34,12 +38,12 @@ export const createToDoNode = (toDoItem) => {
     class: `TDitem mar8 pad8 b12 ${
       toDoItem.completed ? "reduceOpacity" : "originalOpacity"
     }`,
-    "data-id": `ID${toDoItem.ID}`
+    "data-id": `${toDoItem.ID}`,
   });
 
   toDoNode.innerHTML = `<div class="topTwoBtns">
-    <i class="fas fa-pencil-alt cwhite iconBtn iconBtnExtra visiblyAltered" id="editToDo${ID}"></i>
-    <i class="fas fa-trash-alt cwhite iconBtn iconBtnExtra visiblyAltered" id="deleteToDo${ID}"></i>
+  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="edit"><i class="fas fa-pencil-alt cwhite" ></i></button>
+  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="delete"><i class="fas fa-trash-alt cwhite" ></i></button>
   </div>
   <div class="normalBoldTitle textCenter mar10" style="font-size: 18px;">
     ${toDoItem.title}
@@ -54,39 +58,30 @@ export const createToDoNode = (toDoItem) => {
     <i class="fas ${data.categoryIcons[toDoItem.category]} mar8 cwhite TDicon">
     </i>
   </div>
-  <button class="markCompleted greenBtn mar10" id="markCompleted${ID}">
+  <button class="markCompleted greenBtn mar10" data-type="markCompleted"">
   ${toDoItem.completed ? "Completed Undo?" : "Mark Completed"}
   </button>
-  <div class="selectWhiteCircle mar8" id="selectToDo${ID}"></div>`;
+  <button class="selectWhiteCircle mar8" data-type="select"></button>`;
   return toDoNode;
 };
 
 export const createToDoObject = (title, urgency, category) => ({
-    ID: data.counter++,
-    dateAsID: new Date().toLocaleString(),
-    title: title,
-    urgency: urgency,
-    category: category,
-    completed: false
-  });
+  ID: data.counter++,
+  dateAsID: new Date().toLocaleString(),
+  title: title,
+  urgency: urgency,
+  category: category,
+  completed: false,
+});
 
-
-
-//split into 2 fun
-export const createAndAddTodo = () => {
-  const TDTitleInput = getDocumentElementUsingSelector("#TDTitle"); ;
-  const title = TDTitleInput.value.trim();
-  const urgency = getDocumentElementUsingSelector("#urgencySelect").selectedIndex; 
-  const category =getDocumentElementUsingSelector("#categorySelect").selectedIndex;
-  TDTitleInput.focus();
-
+const createToDo = (title, urgency, category) => {
   const toDoItem = createToDoObject(title, urgency, category);
   createToDoInDatabase(toDoItem)
     .then(() => {
       pushNewToDo(toDoItem);
-      addActions("create", [toDoItem.ID],[{...toDoItem}]);
+      addActions(commands.CREATE, [toDoItem.ID], [{ ...toDoItem }]);
       checkAndRenderOneToDo(toDoItem);
-      TDTitleInput.value = "";
+      emptyInputTextBox("#TDTitle");
     })
     .catch((e) => {
       data.counter--;
@@ -94,12 +89,24 @@ export const createAndAddTodo = () => {
     });
 };
 
+//split into 2 fun
+export const createAndAddTodo = () => {
+  const TDTitleInput = getDocumentElementUsingSelector("#TDTitle");
+  const title = TDTitleInput.value.trim();
+  const urgency = getDocumentElementUsingSelector("#urgencySelect")
+    .selectedIndex;
+  const category = getDocumentElementUsingSelector("#categorySelect")
+    .selectedIndex;
+  TDTitleInput.focus();
+  createToDo(title, urgency, category);
+};
+
 export const createModal = (title, urgencyIndex, categoryIndex) => {
   const urgency = ["low", "medium", "high"];
   const category = ["personal", "academic", "social"];
   const updateModal = createElement("div", {
     class: "updateModal",
-    id: "updateModal"
+    id: "updateModal",
   });
 
   updateModal.innerHTML = `<div class="modalContent b12 pad12">

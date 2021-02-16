@@ -64,8 +64,8 @@ export const deleteToDoFromDatabase = (id) =>
 export const bulkUpdateInDatabase = (ids, updatedToDos) =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      ids.forEach((id,i)=>{
-        copyContent(toDos[getIndexInDatabase(id)],updatedToDos[i]);
+      ids.forEach((id, i) => {
+        copyContent(toDos[getIndexInDatabase(id)], updatedToDos[i]);
       });
       resolve();
     } else {
@@ -87,4 +87,15 @@ export const bulkDeleteFromDatabase = (ids) =>
     }
   });
 
+export const bulkCreateInDatabase = (newToDods) =>
+  new Promise((resolve, reject) => {
+    if (randomBooleanValue()) {
+      newToDods.forEach((newToDo) => toDos.push({ ...newToDo }));
+      resolve();
+    } else {
+      reject(
+        "Opps!! something went wrong server side, plz try again after sometime"
+      );
+    }
+  });
 const toDos = [];

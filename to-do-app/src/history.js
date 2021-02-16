@@ -1,34 +1,52 @@
 import { checkAndRenderOneToDo, displayToDos } from "/src/renderFunction.js";
-import { updateToDoInDatabase, deleteToDoFromDatabase, createToDoInDatabase, bulkUpdateInDatabase } from "/src/server.js";
-import { updateCountsForRemovedToDo } from "/src/analytics.js";
+import {
+  updateToDoInDatabase,
+  deleteToDoFromDatabase,
+  createToDoInDatabase,
+  bulkUpdateInDatabase,
+  bulkCreateInDatabase,
+  bulkDeleteFromDatabase,
+} from "/src/server.js";
+import { updateCountsForRemovedToDo, updateAnalytics } from "/src/analytics.js";
 import { showSnackbar, copyContent } from "/src/otherFunctions.js";
-import { getDocumentElementUsingSelector } from "/src/index.js";
-import { data, pushNewToDo, deleteToDoAtAnyIndex, insertToDoAtAnyIndex, alterCompletedProperty, getIndexInLocalDatabase } from "/src/localDataAndElements.js";
+import { deleteDocumentElementUsingSelector } from "/src/index.js";
+import {
+  data,
+  queriedElements,
+  pushNewToDo,
+  deleteToDoAtAnyIndex,
+  insertToDoAtAnyIndex,
+  alterCompletedProperty,
+  getIndexInLocalDatabase,
+} from "/src/localDataAndElements.js";
+import { commands } from "/src/consts.js";
 
 const history = {
   position: -1,
   actions: [],
-}
+};
 
 const createToDoUndoRedo = (id, toDo, isUndo) => {
   if (isUndo) {
-    deleteToDoFromDatabase(id).then(() => {
-      data.allTodos.splice(getIndexInLocalDatabase(id), 1);
-      updateCountsForRemovedToDo(toDo);
-      getDocumentElementUsingSelector(`[data-id="ID${id}"]`).remove(); // create functions
-      history.position--;
-    })
+    deleteToDoFromDatabase(id)
+      .then(() => {
+        deleteToDoAtAnyIndex(getIndexInLocalDatabase(id), 1);
+        updateCountsForRemovedToDo(toDo);
+        updateAnalytics();
+        deleteDocumentElementUsingSelector(`[data-id="${id}"]`);
+        history.position--;
+      })
+      .catch((e) => showSnackbar(e));
+  } else {
+    createToDoInDatabase(toDo)
+      .then(() => {
+        pushNewToDo({ ...toDo });
+        checkAndRenderOneToDo(data.allTodos[data.allTodos.length - 1]);
+        history.position++;
+      })
       .catch((e) => showSnackbar(e));
   }
-  else {
-    createToDoInDatabase(toDo).then(() => {
-      pushNewToDo({ ...toDo });
-      checkAndRenderOneToDo(data.allTodos[data.allTodos.length - 1]);
-      history.position++;
-    })
-      .catch((e) => showSnackbar(e));
-  }
-}
+};
 
 const findIndexToInsert = (id) => {
   let index = data.allTodos.length;
@@ -41,7 +59,7 @@ const findIndexToInsert = (id) => {
     index = 0;
   }
   return index;
-}
+};
 
 const deleteToDoUndoRedo = (id, toDo, isUndo) => {
   if (isUndo) {
@@ -49,71 +67,79 @@ const deleteToDoUndoRedo = (id, toDo, isUndo) => {
       .then(() => {
         const index = findIndexToInsert(id);
         insertToDoAtAnyIndex(index, toDo);
-        // data.allTodos.splice(index, 0, toDo);
         history.position--;
         displayToDos();
       })
       .catch((e) => showSnackbar(e));
-  }
-  else {
+  } else {
     deleteToDoFromDatabase(id)
       .then(() => {
         deleteToDoAtAnyIndex(getIndexInLocalDatabase(id));
-        // data.allTodos.splice(getIndexInLocalDatabase(id), 1);
         history.position++;
         displayToDos();
       })
       .catch((e) => showSnackbar(e));
   }
-
 };
 
 const editToDoUndoRedo = (id, toDo, oldToDo, isUndo) => {
   let toDoCopy = {};
   if (isUndo) {
     toDoCopy = { ...oldToDo };
-  }
-  else {
+  } else {
     toDoCopy = { ...toDo };
   }
-  console.log(id, toDoCopy);
   updateToDoInDatabase(id, toDoCopy)
     .then((returnedToDo) => {
       copyContent(data.allTodos[getIndexInLocalDatabase(id)], returnedToDo);
+      displayToDos();
       if (isUndo) {
         history.position--;
-        updateCountsForRemovedToDo(toDo);
-      }
-      else {
+      } else {
         history.position++;
-        updateCountsForRemovedToDo(oldToDo);
       }
-      checkAndRenderOneToDo(returnedToDo);
+      // checkAndRenderOneToDo(returnedToDo);
     })
     .catch((e) => showSnackbar(e));
-}
+};
 
-const deleteInBulk = () => { };
+const deleteInBulkUndoRedo = (ids, deletedToDos, isUndo) => {
+  if (isUndo) {
+    bulkCreateInDatabase(deletedToDos).then(() => {
+      deletedToDos.forEach((toDo) =>
+        insertToDoAtAnyIndex(findIndexToInsert(toDo.ID), { ...toDo })
+      );
+      history.position--;
+      displayToDos();
+    });
+  } else {
+    bulkDeleteFromDatabase(ids).then(() => {
+      ids.forEach((id) => deleteToDoAtAnyIndex(getIndexInLocalDatabase(id)));
+      history.position++;
+      displayToDos();
+    });
+  }
+};
 
 const alterCompletionInBulkUndoRedo = (ids, isUndo) => {
   const indexs = [];
-  const toDos = []
+  const toDos = [];
   ids.forEach((id, i) => {
     const index = getIndexInLocalDatabase(id);
     indexs.push(index);
     toDos.push({ ...data.allTodos[index] });
     toDos[i].completed = !toDos[i].completed;
-  })
-  bulkUpdateInDatabase(ids, toDos).then(() => {
-    indexs.forEach((index) => alterCompletedProperty(index));
-    displayToDos();
-    if (isUndo) {
-      history.position--;
-    }
-    else {
-      history.position++;
-    }
-  })
+  });
+  bulkUpdateInDatabase(ids, toDos)
+    .then(() => {
+      indexs.forEach((index) => alterCompletedProperty(index));
+      displayToDos();
+      if (isUndo) {
+        history.position--;
+      } else {
+        history.position++;
+      }
+    })
     .catch((e) => showSnackbar(e));
 };
 
@@ -123,40 +149,83 @@ export const undo = () => {
 
   // make consts
   switch (history["actions"][history.position].command) {
-    case "edit":
-      console.log("Edit");
-      editToDoUndoRedo(history["actions"][history.position]["IDs"][0], history["actions"][history.position]["toDos"][0], history["actions"][history.position]["oldToDos"][0], true);
+    case commands.EDIT:
+      editToDoUndoRedo(
+        history["actions"][history.position]["IDs"][0],
+        history["actions"][history.position]["toDos"][0],
+        history["actions"][history.position]["oldToDos"][0],
+        true
+      );
       break;
-    case "alterCompletionInBulk":
-      alterCompletionInBulkUndoRedo(history["actions"][history.position]["IDs"], true);
+    case commands.ALTERCOMPLETIONINBULK:
+      alterCompletionInBulkUndoRedo(
+        history["actions"][history.position]["IDs"],
+        true
+      );
       break;
-    case "create":
-      createToDoUndoRedo(history["actions"][history.position]["IDs"][0], history["actions"][history.position]["toDos"][0], true);
-      break
-    case "delete":
-      console.log("delete");
-      deleteToDoUndoRedo(history["actions"][history.position]["IDs"][0], history["actions"][history.position]["oldToDos"][0], true);
+    case commands.CREATE:
+      createToDoUndoRedo(
+        history["actions"][history.position]["IDs"][0],
+        history["actions"][history.position]["toDos"][0],
+        true
+      );
+      break;
+    case commands.DELETE:
+      deleteToDoUndoRedo(
+        history["actions"][history.position]["IDs"][0],
+        history["actions"][history.position]["oldToDos"][0],
+        true
+      );
+      break;
+    case commands.DELETEINBULK:
+      deleteInBulkUndoRedo(
+        history["actions"][history.position]["IDs"],
+        history["actions"][history.position]["oldToDos"],
+        true
+      );
       break;
     default:
       break;
   }
-
 };
 export const redo = () => {
   if (history.position === history.actions.length - 1) return;
   console.log(history.position);
   switch (history["actions"][history.position + 1].command) {
-    case "edit":
-      editToDoUndoRedo(history["actions"][history.position + 1]["IDs"][0], history["actions"][history.position + 1]["toDos"][0], history["actions"][history.position + 1]["oldToDos"][0], false);
+    case commands.EDIT:
+      editToDoUndoRedo(
+        history["actions"][history.position + 1]["IDs"][0],
+        history["actions"][history.position + 1]["toDos"][0],
+        history["actions"][history.position + 1]["oldToDos"][0],
+        false
+      );
       break;
-    case "alterCompletionInBulk":
-      alterCompletionInBulkUndoRedo(history["actions"][history.position + 1]["IDs"], false);
+    case commands.ALTERCOMPLETIONINBULK:
+      alterCompletionInBulkUndoRedo(
+        history["actions"][history.position + 1]["IDs"],
+        false
+      );
       break;
-    case "create":
-      createToDoUndoRedo(history["actions"][history.position + 1]["IDs"][0], history["actions"][history.position + 1]["toDos"][0], false);
+    case commands.CREATE:
+      createToDoUndoRedo(
+        history["actions"][history.position + 1]["IDs"][0],
+        history["actions"][history.position + 1]["toDos"][0],
+        false
+      );
       break;
-    case "delete":
-      deleteToDoUndoRedo(history["actions"][history.position + 1]["IDs"][0], history["actions"][history.position + 1]["oldToDos"][0], false);
+    case commands.DELETE:
+      deleteToDoUndoRedo(
+        history["actions"][history.position + 1]["IDs"][0],
+        history["actions"][history.position + 1]["oldToDos"][0],
+        false
+      );
+      break;
+    case commands.DELETEINBULK:
+      deleteInBulkUndoRedo(
+        history["actions"][history.position + 1]["IDs"],
+        history["actions"][history.position + 1]["oldToDos"],
+        false
+      );
       break;
     default:
       break;
@@ -166,10 +235,11 @@ export const redo = () => {
 export const addActions = (commandType, toDoIDs, toDos, oldToDos) => {
   history.actions = history.actions.slice(0, history.position + 1);
   const newAction = {
-    "command": commandType,
-    "IDs": toDoIDs,
-  }
-  if (toDos) {  //!toDos
+    command: commandType,
+    IDs: toDoIDs,
+  };
+  if (toDos) {
+    //!toDos
     newAction["toDos"] = toDos;
   }
   if (oldToDos) {
