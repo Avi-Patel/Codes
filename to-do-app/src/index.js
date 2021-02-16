@@ -8,6 +8,7 @@ import {
   clearSelection,
 } from "/src/operationsOnToDo.js";
 import { undo, redo } from "/src/history.js";
+import { showSnackbar } from "/src/otherFunctions.js";
 
 console.log("start");
 updateHeaderDate();
@@ -48,21 +49,25 @@ export const changeBtnStyleForSelection = (target, selected) => {
 
 const updateFilter = (event, dataFilter, dataFilterIds) => {
   let anyThingChanged = true;
-  const id = event.target.id
-    ? event.target.id
-    : extractClosestNodeFromPath("button").id;
-  switch (id) {
+  const targetButton =
+    event.target.tagName === "BUTTON"
+      ? event.target
+      : extractClosestNodeFromPath(event, "button");
+
+  if (!targetButton) return;
+
+  switch (targetButton.id) {
     case dataFilterIds[0]:
       dataFilter[0] ^= 1;
-      changeBtnStyle(event.target, dataFilter[0]);
+      changeBtnStyle(targetButton, dataFilter[0]);
       break;
     case dataFilterIds[1]:
       dataFilter[1] ^= 1;
-      changeBtnStyle(event.target, dataFilter[1]);
+      changeBtnStyle(targetButton, dataFilter[1]);
       break;
     case dataFilterIds[2]:
       dataFilter[2] ^= 1;
-      changeBtnStyle(event.target, dataFilter[2]);
+      changeBtnStyle(targetButton, dataFilter[2]);
       break;
     default:
       anyThingChanged = false;
@@ -83,14 +88,20 @@ queriedElements.categoryFilter.addEventListener("click", (event) =>
   updateFilter(event, data.categoryFilter, data.categoryFilterIds)
 );
 queriedElements.completeSelection.addEventListener("click", () =>
-  updateAllToCompleted()
+  data.curOnScreenSelected.length !== 0
+    ? updateAllToCompleted()
+    : showSnackbar("No ToDos selected")
 );
 
 queriedElements.clearSelection.addEventListener("click", () =>
-  clearSelection()
+  data.curOnScreenSelected.length !== 0
+    ? clearSelection()
+    : showSnackbar("No ToDos selected")
 );
 queriedElements.deleteSelection.addEventListener("click", () =>
-  deleteAllSelectedToDos()
+  data.curOnScreenSelected.length !== 0
+    ? deleteAllSelectedToDos()
+    : showSnackbar("No ToDos selected")
 );
 
 queriedElements.searchInput.addEventListener("input", (event) => {

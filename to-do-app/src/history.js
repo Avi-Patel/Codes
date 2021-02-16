@@ -98,7 +98,6 @@ const undoRedoOnEdit = (id, toDo, oldToDo, isUndo) => {
       } else {
         history.position++;
       }
-      // checkAndRenderOneToDo(returnedToDo);
     })
     .catch((e) => showSnackbar(e));
 };

@@ -20,10 +20,13 @@ import { commands } from "/src/consts.js";
 
 const addListenerForToDo = (newToDo) => {
   newToDo.addEventListener("click", (event) => {
-    const targetButton = event.target.dataset
-      ? event.target
-      : extractClosestNodeFromPath(event, "button");
-    console.log(targetButton);
+    const targetButton =
+      event.target.tagName === "BUTTON"
+        ? event.target
+        : extractClosestNodeFromPath(event, "button");
+
+    if (!targetButton) return;
+
     const id = parseInt(newToDo.dataset.id);
     switch (targetButton.dataset.type) {
       case commands.MARKCOMPLETED:
@@ -85,7 +88,6 @@ export const displayToDos = () => {
     const conditionSatisfied =
       checkWithFilter(toDoItem) &&
       containSearchedWord(queriedElements.searchInput.value, toDoItem.title);
-    console.log(queriedElements.searchInput.value);
     if (conditionSatisfied) {
       totalCount++;
       if (toDoItem.completed) {
