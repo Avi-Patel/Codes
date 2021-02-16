@@ -146,7 +146,6 @@ export const undo = () => {
   if (history.position === -1) return;
   console.log(history.position);
 
-  // make consts
   switch (history["actions"][history.position].command) {
     case commands.EDIT:
       undoRedoOnEdit(
@@ -238,7 +237,6 @@ export const addActions = (commandType, toDoIDs, toDos, oldToDos) => {
     IDs: toDoIDs,
   };
   if (toDos) {
-    //!toDos
     newAction["toDos"] = toDos;
   }
   if (oldToDos) {
