@@ -104,19 +104,23 @@ const undoRedoOnEdit = (id, toDo, oldToDo, isUndo) => {
 
 const undoRedoOnDeleteInBulk = (ids, deletedToDos, isUndo) => {
   if (isUndo) {
-    bulkCreateInDatabase(deletedToDos).then(() => {
-      deletedToDos.forEach((toDo) =>
-        insertToDoAtAnyIndex(findIndexToInsert(toDo.ID), { ...toDo })
-      );
-      history.position--;
-      displayToDos();
-    });
+    bulkCreateInDatabase(deletedToDos)
+      .then(() => {
+        deletedToDos.forEach((toDo) =>
+          insertToDoAtAnyIndex(findIndexToInsert(toDo.ID), { ...toDo })
+        );
+        history.position--;
+        displayToDos();
+      })
+      .catch((e) => showSnackbar(e));
   } else {
-    bulkDeleteFromDatabase(ids).then(() => {
-      ids.forEach((id) => deleteToDoAtAnyIndex(getIndexInLocalDatabase(id)));
-      history.position++;
-      displayToDos();
-    });
+    bulkDeleteFromDatabase(ids)
+      .then(() => {
+        ids.forEach((id) => deleteToDoAtAnyIndex(getIndexInLocalDatabase(id)));
+        history.position++;
+        displayToDos();
+      })
+      .catch((e) => showSnackbar(e));
   }
 };
 

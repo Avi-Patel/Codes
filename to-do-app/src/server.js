@@ -8,8 +8,11 @@ const randomBooleanValue = () => Math.random() <= 0.98;
 // else return false;
 // };
 
+const sortToDosByID = (toDo1, ToDo2) => toDo1.ID - ToDo2.ID;
+
 export const saveToDos = () =>
   new Promise((resolve, reject) => {
+    toDos.sort(sortToDosByID);
     localStorage.setItem("toDos", JSON.stringify(toDos));
     resolve();
   });
