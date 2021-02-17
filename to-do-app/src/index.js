@@ -143,9 +143,11 @@ window.addEventListener("keypress", (event) => {
 
 const setLocalData = (toDos) => {
   emptyAllTodosArray();
-  toDos.forEach((toDo) => pushNewToDo({ ...toDo }));
+  toDos.forEach((toDo) => {
+    pushNewToDo({ ...toDo });
+    data.counter = Math.max(toDo.ID + 1, data.counter);
+  });
   displayToDos();
-  data.counter = toDos.length;
 };
 
 document.addEventListener("DOMContentLoaded", () => {
