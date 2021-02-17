@@ -38,6 +38,7 @@ export const pushNewToDo = (toDo) => data.allTodos.push(toDo);
 export const deleteToDoAtAnyIndex = (index) => data.allTodos.splice(index, 1);
 export const insertToDoAtAnyIndex = (index, toDo) =>
   data.allTodos.splice(index, 0, toDo);
+export const emptyAllTodosArray = () => (data.allTodos.length = 0);
 export const alterCompletedProperty = (index) =>
   (data.allTodos[index].completed = !data.allTodos[index].completed);
 export const getIndexInLocalDatabase = (id) => {

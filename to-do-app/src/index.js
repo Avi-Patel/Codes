@@ -1,5 +1,10 @@
 import { updateHeaderDate } from "/src/otherFunctions.js";
-import { data, queriedElements } from "/src/localDataAndElements.js";
+import {
+  data,
+  queriedElements,
+  pushNewToDo,
+  emptyAllTodosArray,
+} from "/src/localDataAndElements.js";
 import { createAndAddTodo } from "/src/createFunctions.js";
 import { displayToDos } from "/src/renderFunction.js";
 import {
@@ -9,6 +14,7 @@ import {
 } from "/src/operationsOnToDo.js";
 import { undo, redo } from "/src/history.js";
 import { showSnackbar } from "/src/otherFunctions.js";
+import { getToDosFromDatabase, saveToDos } from "/src/server.js";
 
 console.log("start");
 updateHeaderDate();
@@ -133,4 +139,27 @@ window.addEventListener("keypress", (event) => {
     clearSelection();
     redo();
   }
+});
+
+const setLocalData = (toDos) => {
+  emptyAllTodosArray();
+  toDos.forEach((toDo) => pushNewToDo({ ...toDo }));
+  displayToDos();
+  data.counter = toDos.length;
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("loading data");
+  getToDosFromDatabase()
+    .then((toDos) => {
+      if (toDos.length > 0) {
+        setLocalData(toDos);
+      }
+    })
+    .catch((e) => showSnackbar(e));
+});
+
+window.addEventListener("beforeunload", () => {
+  console.log("Saving data");
+  saveToDos().catch((e) => showSnackbar(e));
 });

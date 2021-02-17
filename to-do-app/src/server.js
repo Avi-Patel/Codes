@@ -8,6 +8,12 @@ const randomBooleanValue = () => Math.random() <= 0.98;
 // else return false;
 // };
 
+export const saveToDos = () =>
+  new Promise((resolve, reject) => {
+    localStorage.setItem("toDos", JSON.stringify(toDos));
+    resolve();
+  });
+
 export const getIndexInDatabase = (id) => {
   let index = null;
   toDos.forEach((toDo, i) => {
@@ -16,10 +22,15 @@ export const getIndexInDatabase = (id) => {
   return index;
 };
 
-export const getToDoFromDatabase = (id) =>
+export const getToDosFromDatabase = () =>
   new Promise((resolve, reject) => {
     if (randomBooleanValue()) {
-      resolve(toDos.find((toDo) => toDo.ID === id));
+      const storedToDos = JSON.parse(localStorage.getItem("toDos"));
+      toDos.length = 0;
+      if (storedToDos) {
+        storedToDos.forEach((toDo) => toDos.push({ ...toDo }));
+      }
+      resolve(toDos);
     } else {
       reject(
         "Opps!! something went wrong whiel fecthing data, plz try again after sometime"
