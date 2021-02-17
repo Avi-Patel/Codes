@@ -42,8 +42,8 @@ export const createToDoNode = (toDoItem) => {
   });
 
   toDoNode.innerHTML = `<div class="topTwoBtns">
-  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="edit"><i class="fas fa-pencil-alt cwhite" ></i></button>
-  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="delete"><i class="fas fa-trash-alt cwhite" ></i></button>
+  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="edit"><i class="fa fa-pencil cwhite" ></i></button>
+  <button class="iconBtn iconBtnExtra visiblyAltered" data-type="delete"><i class="fa fa-trash cwhite" ></i></button>
   </div>
   <div class="normalBoldTitle textCenter mar10" style="font-size: 18px;">
     ${toDoItem.title}
@@ -52,11 +52,13 @@ export const createToDoNode = (toDoItem) => {
     ${toDoItem.dateAsID}
   </div>
   <div class="TDprefrerences mar10">
-    <i class="fas fa-exclamation-triangle mar8 ${
-      data.urgencyIconColors[toDoItem.urgency]
-    } TDicon"></i>
-    <i class="fas ${data.categoryIcons[toDoItem.category]} mar8 cwhite TDicon">
-    </i>
+  <span class="TDicon mar8 ${data.urgencyIconColors[toDoItem.urgency]}">
+    <i class="fa fa-exclamation-triangle "></i>
+  </span>
+  <span class="TDicon mar8 cwhite">
+    <i class="fa ${data.categoryIcons[toDoItem.category]}"></i>
+  </span>
+    
   </div>
   <button class="markCompleted greenBtn mar10" data-type="markCompleted"">
   ${toDoItem.completed ? "Completed Undo?" : "Mark Completed"}

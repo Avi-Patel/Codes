@@ -10,8 +10,8 @@ export const commands = {
 };
 
 export const categoryIcons = {
-  USERALT: "fa-user-alt",
-  BOOKOPEN: "fa-book-open",
+  USERALT: "fa-user",
+  BOOKOPEN: "fa-book",
   USERS: "fa-users",
 };
 
